@@ -1,0 +1,34 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">ตารางเรียน</h2>
+
+    <div class="card">
+        <h3>รายวิชาที่ลงทะเบียน</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>รหัสวิชา</th>
+                    <th>ชื่อวิชา</th>
+                    <th>ครูผู้สอน</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% subjects.forEach(s=> { %>
+                    <tr>
+                        <td>
+                            <%= s.code %>
+                        </td>
+                        <td>
+                            <%= s.name %>
+                        </td>
+                        <td>
+                            <%= s.teacher_user_id ? 'Teacher' : 'TBD' %>
+                        </td>
+                    </tr>
+                    <% }); %>
+            </tbody>
+        </table>
+        <p class="mt-4 text-muted">*ตารางเรียนแบบละเอียด (วัน/เวลา) อยู่ระหว่างการปรับปรุงระบบ</p>
+    </div>
+
+    <%- include('../layouts/footer') %>

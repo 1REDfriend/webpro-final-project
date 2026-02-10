@@ -1,0 +1,39 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">รายชื่อนักเรียนในที่ปรึกษา</h2>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>รหัสนักเรียน</th>
+                    <th>ชื่อ-นามสกุล</th>
+                    <th>จัดการคะแนนความประพฤติ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% students.forEach(s=> { %>
+                    <tr>
+                        <td>
+                            <%= s.student_code %>
+                        </td>
+                        <td>
+                            <%= s.name %>
+                        </td>
+                        <td>
+                            <form action="/teacher/behavior" method="POST" style="display: flex; gap: 0.5rem;">
+                                <input type="hidden" name="student_id" value="<%= s.id %>">
+                                <input type="number" name="score_change" placeholder="+/-" style="width: 60px;" required
+                                    value="-5">
+                                <input type="text" name="reason" placeholder="เหตุผล" required value="มาสาย">
+                                <button type="submit" class="btn btn-secondary"
+                                    style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">บันทึก</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <%- include('../layouts/footer') %>

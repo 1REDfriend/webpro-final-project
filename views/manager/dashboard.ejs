@@ -1,0 +1,43 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">แผงควบคุมผู้บริหาร</h2>
+
+    <div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="card text-center">
+            <h3>นักเรียนทั้งหมด</h3>
+            <p style="font-size: 2.5rem; color: var(--primary-color); font-weight: bold;">
+                <%= stats.studentCount %>
+            </p>
+            <p>คน</p>
+        </div>
+        <div class="card text-center">
+            <h3>บุคลากรครู</h3>
+            <p style="font-size: 2.5rem; color: var(--primary-dark); font-weight: bold;">
+                <%= stats.teacherCount %>
+            </p>
+            <p>ท่าน</p>
+        </div>
+        <div class="card text-center">
+            <h3>จำนวนห้องเรียน</h3>
+            <p style="font-size: 2.5rem; color: #7B1FA2; font-weight: bold;">
+                <%= stats.classCount %>
+            </p>
+            <p>ห้อง</p>
+        </div>
+        <div class="card text-center">
+            <h3>คำร้องค้างดำเนินการ</h3>
+            <p style="font-size: 2.5rem; color: #E64A19; font-weight: bold;">
+                <%= stats.requestCount %>
+            </p>
+            <p>รายการ</p>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <h3>สถิติผลการเรียนเฉลี่ยทั้งโรงเรียน</h3>
+        <p>GPA เฉลี่ยของนักเรียนทั้งหมด: <strong>
+                <%= stats.avgGpa %>
+            </strong></p>
+    </div>
+
+    <%- include('../layouts/footer') %>

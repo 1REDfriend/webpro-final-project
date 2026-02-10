@@ -1,0 +1,31 @@
+<%- include('../layouts/header') %>
+
+    <div class="card" style="max-width: 400px; margin: 4rem auto;">
+        <h2 class="text-center mb-4">เข้าสู่ระบบ</h2>
+        <% if (error) { %>
+            <div style="color: red; text-align: center; margin-bottom: 1rem;">
+                <%= error %>
+            </div>
+            <% } %>
+                <form action="/login" method="POST">
+                    <div class="form-group">
+                        <label>ชื่อผู้ใช้งาน / รหัสนักเรียน</label>
+                        <input type="text" name="username" class="form-control" required
+                            placeholder="เช่น std1001, t_somchai">
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" name="password" class="form-control" required placeholder="password">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">ตกลง</button>
+                </form>
+                <div class="text-center mt-4" style="font-size: 0.9em; color: gray;">
+                    <p>Mock Credentials:</p>
+                    <p>Student: std1001 / password</p>
+                    <p>Teacher: t_somchai / password</p>
+                    <p>Staff: staff / staff</p>
+                    <p>Manager: manager / manager</p>
+                </div>
+    </div>
+
+    <%- include('../layouts/footer') %>

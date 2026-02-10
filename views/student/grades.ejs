@@ -1,0 +1,53 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">ผลการเรียน</h2>
+
+    <div class="card">
+        <div class="flex-between mb-4">
+            <h3>ภาคเรียนที่ 1/2024</h3>
+            <button onclick="window.print()" class="btn btn-secondary">พิมพ์ใบเกรด</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>รหัสวิชา</th>
+                    <th>ชื่อวิชา</th>
+                    <th>หน่วยกิต</th>
+                    <th>คะแนน</th>
+                    <th>เกรด</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% grades.forEach(item=> { %>
+                    <tr>
+                        <td>
+                            <%= item.code %>
+                        </td>
+                        <td>
+                            <%= item.name %>
+                        </td>
+                        <td>
+                            <%= item.credit %>
+                        </td>
+                        <td>
+                            <%= item.score %>
+                        </td>
+                        <td>
+                            <%= item.grade %>
+                        </td>
+                    </tr>
+                    <% }); %>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align: right; font-weight: bold;">เกรดเฉลี่ย (GPA)</td>
+                    <td style="font-weight: bold;">
+                        <%= gpa %>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <%- include('../layouts/footer') %>

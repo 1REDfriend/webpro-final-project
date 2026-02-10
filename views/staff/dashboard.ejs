@@ -1,0 +1,67 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">ระบบจัดการคำร้อง (ฝ่ายธุรการ)</h2>
+
+    <div class="card">
+        <h3>รายการคำร้องทั้งหมด</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>วันที่</th>
+                    <th>ผู้ส่ง</th>
+                    <th>บทบาท</th>
+                    <th>ประเภท</th>
+                    <th>รายละเอียด</th>
+                    <th>สถานะ</th>
+                    <th>การจัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% requests.forEach(req=> { %>
+                    <tr>
+                        <td>
+                            <%= req.created_at %>
+                        </td>
+                        <td>
+                            <%= req.sender_name %>
+                        </td>
+                        <td>
+                            <%= req.sender_role %>
+                        </td>
+                        <td>
+                            <%= req.type %>
+                        </td>
+                        <td>
+                            <%= req.details %>
+                                <% if(req.response) { %><br><small class="text-muted">ตอบกลับ: <%= req.response %>
+                                            </small>
+                                    <% } %>
+                        </td>
+                        <td>
+                            <span class="badge"
+                                style="background-color: <%= req.status === 'Approved' ? '#C8E6C9' : (req.status === 'Rejected' ? '#FFCDD2' : '#FFF9C4') %>">
+                                <%= req.status %>
+                            </span>
+                        </td>
+                        <td>
+                            <% if (req.status==='Pending' ) { %>
+                                <form action="/staff/request-update" method="POST" style="display: flex; gap: 0.5rem;">
+                                    <input type="hidden" name="id" value="<%= req.id %>">
+                                    <input type="text" name="response" placeholder="หมายเหตุ/ตอบกลับ"
+                                        class="form-control" style="width: 150px;">
+                                    <button type="submit" name="status" value="Approved" class="btn btn-success"
+                                        style="padding: 0.25rem 0.5rem; background-color: #4CAF50; color: white;">อนุมัติ</button>
+                                    <button type="submit" name="status" value="Rejected" class="btn btn-danger"
+                                        style="padding: 0.25rem 0.5rem;">ปฏิเสธ</button>
+                                </form>
+                                <% } else { %>
+                                    -
+                                    <% } %>
+                        </td>
+                    </tr>
+                    <% }); %>
+            </tbody>
+        </table>
+    </div>
+
+    <%- include('../layouts/footer') %>

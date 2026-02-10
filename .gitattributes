@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Set the default EOL to CRLF for Windows
+* eol=crlf
+
+node_modules\

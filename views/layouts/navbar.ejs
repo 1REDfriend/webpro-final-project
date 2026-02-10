@@ -1,0 +1,33 @@
+<nav class="navbar">
+    <a href="/" class="navbar-brand">SDMS School</a>
+    <div class="navbar-menu">
+        <% if (user) { %>
+            <span>สวัสดี, <%= user.name %> (<%= user.role %>)</span>
+
+            <% if (user.role==='student' ) { %>
+                <a href="/student/dashboard">หน้าหลัก</a>
+                <a href="/student/grades">ผลการเรียน</a>
+                <a href="/student/schedule">ตารางเรียน</a>
+                <a href="/student/requests">คำร้อง</a>
+                <% } %>
+
+                    <% if (user.role==='teacher' ) { %>
+                        <a href="/teacher/dashboard">หน้าหลัก</a>
+                        <a href="/teacher/classes">รายชื่อห้อง</a>
+                        <a href="/teacher/requests">คำร้อง</a>
+                        <% } %>
+
+                            <% if (user.role==='staff' ) { %>
+                                <a href="/staff/dashboard">จัดการคำร้อง</a>
+                                <% } %>
+
+                                    <% if (user.role==='manager' ) { %>
+                                        <a href="/manager/dashboard">ภาพรวม</a>
+                                        <% } %>
+
+                                            <a href="/logout" class="auth-btn">ออกจากระบบ</a>
+                                            <% } else { %>
+                                                <a href="/login">เข้าสู่ระบบ</a>
+                                                <% } %>
+    </div>
+</nav>

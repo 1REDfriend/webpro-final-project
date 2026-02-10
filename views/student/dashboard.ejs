@@ -1,0 +1,40 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">แผงควบคุมนักเรียน</h2>
+
+    <div class="card">
+        <h3>ข้อมูลส่วนตัว</h3>
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; align-items: start;">
+            <div>
+                <img src="https://via.placeholder.com/150" alt="Profile" style="border-radius: 50%; width: 150px;">
+            </div>
+            <div>
+                <p><strong>ชื่อ-นามสกุล:</strong>
+                    <%= student.name %>
+                </p>
+                <p><strong>รหัสนักเรียน:</strong>
+                    <%= student.student_code %>
+                </p>
+                <p><strong>ชั้นเรียน:</strong>
+                    <%= student.class_name %>
+                </p>
+                <p><strong>สถานะ:</strong> กำลังศึกษา</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>คะแนนความประพฤติ</h3>
+        <p class="mb-4"
+            style="font-size: 2rem; font-weight: bold; color: <%= student.behavior_score < 50 ? 'red' : 'green' %>">
+            100 <!-- Mock initial score -->
+        </p>
+        <p class="text-muted">คะแนนเริ่มต้น 100 คะแนน</p>
+    </div>
+
+    <div class="card">
+        <h3>ประกาศจากโรงเรียน</h3>
+        <p>ยินดีต้อนรับสู่เปิดเทอมภาคเรียนที่ 1 ปีการศึกษา 2567</p>
+    </div>
+
+    <%- include('../layouts/footer') %>
