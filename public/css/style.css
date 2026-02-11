@@ -144,3 +144,9 @@ th {
 .badge-success { background-color: #C8E6C9; color: #2E7D32; }
 .badge-warning { background-color: #FFF9C4; color: #FBC02D; }
 .badge-danger { background-color: #FFCDD2; color: #C62828; }
+
+.nav-logo {
+    height: 30px;
+    width: auto;
+    translate: 0 5px;
+}
