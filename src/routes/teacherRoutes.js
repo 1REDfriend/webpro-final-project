@@ -8,6 +8,7 @@ router.use(isAuthenticated, hasRole('teacher'));
 router.get('/dashboard', teacherController.getDashboard);
 router.get('/classes', teacherController.getClasses);
 router.post('/behavior', teacherController.updateBehavior);
+router.post('/grade', teacherController.updateGrade); // New Route
 router.get('/requests', teacherController.getRequests);
 router.post('/requests', teacherController.postRequest);
 

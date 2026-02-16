@@ -1,60 +1,59 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">คำร้องทั่วไป</h2>
+    <h2 class="mb-4">ระบบคำร้อง (Request System)</h2>
 
-    <div class="card mb-4">
-        <h3>ส่งคำร้องใหม่</h3>
-        <form action="/student/requests" method="POST">
-            <div class="form-group">
-                <label>ประเภทคำร้อง</label>
-                <select name="type" class="form-control" required>
-                    <option value="เอกสาร">ขอเอกสารรับรอง</option>
-                    <option value="ลาป่วย/ลากิจ">ลาป่วย/ลากิจ</option>
-                    <option value="ทั่วไป">ทั่วไป</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>รายละเอียด</label>
-                <textarea name="details" class="form-control" rows="4" required
-                    placeholder="ระบุรายละเอียด..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">ส่งคำร้อง</button>
-        </form>
-    </div>
-
-    <div class="card">
-        <h3>ประวัติคำร้อง</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>วันที่</th>
-                    <th>ประเภท</th>
-                    <th>รายละเอียด</th>
-                    <th>สถานะ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% requests.forEach(req=> { %>
+    <div class="grid-2">
+        <div class="card">
+            <h3>ประวัติคำร้อง</h3>
+            <table>
+                <thead>
                     <tr>
-                        <td>
-                            <%= req.created_at %>
-                        </td>
-                        <td>
-                            <%= req.type %>
-                        </td>
-                        <td>
-                            <%= req.details %>
-                        </td>
-                        <td>
-                            <span class="badge"
-                                style="background-color: <%= req.status === 'Approved' ? '#C8E6C9' : (req.status === 'Rejected' ? '#FFCDD2' : '#FFF9C4') %>">
-                                <%= req.status %>
-                            </span>
-                        </td>
+                        <th>วันที่</th>
+                        <th>หัวข้อ</th>
+                        <th>สถานะ</th>
                     </tr>
-                    <% }); %>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <% requests.forEach(req=> { %>
+                        <tr>
+                            <td>
+                                <%= new Date(req.date).toLocaleDateString('th-TH') %>
+                            </td>
+                            <td>
+                                <%= req.topic %>
+                                    <% if(req.reply) { %><br><small class="text-muted">ตอบกลับ: <%= req.reply %></small>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <span class="badge badge-<%= req.status %>">
+                                    <%= req.status %>
+                                </span>
+                            </td>
+                        </tr>
+                        <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="height: fit-content;">
+            <h3>ส่งคำร้องใหม่</h3>
+            <form action="/student/requests" method="POST">
+                <div class="form-group">
+                    <label>หัวข้อคำร้อง</label>
+                    <select name="topic" class="form-control" required>
+                        <option value="ขอเอกสารรับรอง">ขอเอกสารรับรอง (Transcript)</option>
+                        <option value="ลาป่วย/ลากิจ">ลาป่วย/ลากิจ</option>
+                        <option value="เปลี่ยนลงทะเบียน">คำร้องทั่วไป</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>รายละเอียด</label>
+                    <textarea name="description" class="form-control" rows="5" required
+                        placeholder="โปรดระบุรายละเอียดอย่างชัดเจน..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">ส่งคำร้อง</button>
+            </form>
+        </div>
     </div>
 
     <%- include('../layouts/footer') %>

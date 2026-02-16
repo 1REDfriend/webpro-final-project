@@ -1,12 +1,9 @@
-const db = require('../../database/db');
+const db = require('../../database');
 
 const getTeacherData = (userId) => {
     return new Promise((resolve, reject) => {
         db.get(`
-            SELECT t.*, u.name as name
-            FROM teachers t
-            JOIN users u ON t.user_id = u.id
-            WHERE u.id = ?
+            SELECT * FROM users WHERE id = ?
         `, [userId], (err, row) => {
             if (err) reject(err);
             else resolve(row);
@@ -28,18 +25,23 @@ exports.getClasses = async (req, res) => {
     try {
         const teacher = await getTeacherData(req.session.user.id);
 
-        // Setup query to find classes this teacher teaches (via subjects) AND homeroom
-        // For simplicity, we just list the homeroom class students first or all classes
-        // Let's list the homeroom class details
-
-        db.all(`
-            SELECT s.*, u.name
-            FROM students s
-            JOIN users u ON s.user_id = u.id
-            WHERE s.class_id = ?
-        `, [teacher.homeroom_class_id], (err, students) => {
+        // Fetch subjects taught by this teacher
+        db.all(`SELECT * FROM subjects WHERE teacher_id = ?`, [teacher.id], (err, subjects) => {
             if (err) throw err;
-            res.render('teacher/classes', { teacher, students });
+
+            // For now, let's just show a list of students from all classrooms (simplified for MVC demo)
+            // Ideally, we would select a subject/classroom to view
+
+            db.all(`
+                SELECT s.*, u.full_name as name, c.name as classroom_name
+                FROM students s
+                JOIN users u ON s.user_id = u.id
+                JOIN classrooms c ON s.classroom_id = c.id
+                ORDER BY c.name, s.student_code
+            `, [], (err, students) => {
+                if (err) throw err;
+                res.render('teacher/classes', { teacher, subjects, students });
+            });
         });
     } catch (err) {
         console.error(err);
@@ -48,29 +50,52 @@ exports.getClasses = async (req, res) => {
 };
 
 exports.updateBehavior = (req, res) => {
-    const { student_id, score_change, reason } = req.body;
-    // We need to fetch the teacher id first, ideally store in session or fetch
-    // For now assuming we can get it or just pass 0 if lazy, but let's do it right
-    getTeacherData(req.session.user.id).then(teacher => {
-        db.run(`INSERT INTO behaviors (student_id, score_change, reason, teacher_id) VALUES (?, ?, ?, ?)`,
-            [student_id, score_change, reason, teacher.id], (err) => {
-                if (err) console.error(err);
-                res.redirect('/teacher/classes');
-            });
+    const { student_id, score_change } = req.body;
+    db.run(`UPDATE students SET behavior_score = behavior_score + ? WHERE id = ?`,
+        [score_change, student_id], (err) => {
+            if (err) console.error(err);
+            res.redirect('/teacher/classes');
+        });
+};
+
+exports.updateGrade = (req, res) => {
+    const { student_id, subject_id, grade_midterm, grade_final } = req.body;
+    const total = parseFloat(grade_midterm) + parseFloat(grade_final);
+    let grade_char = 'F';
+    if (total >= 80) grade_char = 'A';
+    else if (total >= 70) grade_char = 'B';
+    else if (total >= 60) grade_char = 'C';
+    else if (total >= 50) grade_char = 'D';
+
+    // Check if enrollment exists
+    db.get('SELECT * FROM enrollments WHERE student_id = ? AND subject_id = ?', [student_id, subject_id], (err, row) => {
+        if (row) {
+            db.run(`UPDATE enrollments SET grade_midterm = ?, grade_final = ?, total_score = ?, grade_char = ? WHERE student_id = ? AND subject_id = ?`,
+                [grade_midterm, grade_final, total, grade_char, student_id, subject_id], (err) => {
+                    if (err) console.error(err);
+                    res.redirect('/teacher/classes');
+                });
+        } else {
+            db.run(`INSERT INTO enrollments (student_id, subject_id, grade_midterm, grade_final, total_score, grade_char) VALUES (?, ?, ?, ?, ?, ?)`,
+                [student_id, subject_id, grade_midterm, grade_final, total, grade_char], (err) => {
+                    if (err) console.error(err);
+                    res.redirect('/teacher/classes');
+                });
+        }
     });
 };
 
 exports.getRequests = (req, res) => {
-    db.all('SELECT * FROM requests WHERE sender_id = ? ORDER BY created_at DESC', [req.session.user.id], (err, requests) => {
+    db.all('SELECT * FROM requests WHERE user_id = ? ORDER BY date DESC', [req.session.user.id], (err, requests) => {
         if (err) throw err;
         res.render('teacher/requests', { requests });
     });
 };
 
 exports.postRequest = (req, res) => {
-    const { type, details } = req.body;
-    db.run('INSERT INTO requests (sender_id, type, details) VALUES (?, ?, ?)',
-        [req.session.user.id, type, details], (err) => {
+    const { topic, description } = req.body;
+    db.run('INSERT INTO requests (user_id, topic, description) VALUES (?, ?, ?)',
+        [req.session.user.id, topic, description], (err) => {
             if (err) console.error(err);
             res.redirect('/teacher/requests');
         });

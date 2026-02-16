@@ -3,7 +3,7 @@ const router = express.Router();
 const managerController = require('../controllers/managerController');
 const { isAuthenticated, hasRole } = require('../middleware/authMiddleware');
 
-router.use(isAuthenticated, hasRole('manager'));
+router.use(isAuthenticated, hasRole('executive'));
 
 router.get('/dashboard', managerController.getDashboard);
 

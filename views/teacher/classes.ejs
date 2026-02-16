@@ -1,39 +1,85 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">รายชื่อนักเรียนในที่ปรึกษา</h2>
+    <h2 class="mb-4">จัดการห้องเรียนและคะแนน</h2>
 
-    <div class="card">
+    <div class="card mb-4">
+        <h3>รายชื่อนักเรียน (ทั้งหมด)</h3>
         <table>
             <thead>
                 <tr>
-                    <th>รหัสนักเรียน</th>
+                    <th>ห้อง</th>
+                    <th>รหัส</th>
                     <th>ชื่อ-นามสกุล</th>
-                    <th>จัดการคะแนนความประพฤติ</th>
+                    <th>คะแนนพฤติกรรม</th>
+                    <th>ปรับคะแนน</th>
                 </tr>
             </thead>
             <tbody>
                 <% students.forEach(s=> { %>
                     <tr>
                         <td>
+                            <%= s.classroom_name %>
+                        </td>
+                        <td>
                             <%= s.student_code %>
                         </td>
                         <td>
                             <%= s.name %>
                         </td>
+                        <td style="font-weight: bold; color: <%= s.behavior_score < 50 ? '#ff6b6b' : '#00b894' %>">
+                            <%= s.behavior_score %>
+                        </td>
                         <td>
-                            <form action="/teacher/behavior" method="POST" style="display: flex; gap: 0.5rem;">
+                            <form action="/teacher/behavior" method="POST"
+                                style="display: flex; gap: 0.5rem; align-items: center;">
                                 <input type="hidden" name="student_id" value="<%= s.id %>">
-                                <input type="number" name="score_change" placeholder="+/-" style="width: 60px;" required
-                                    value="-5">
-                                <input type="text" name="reason" placeholder="เหตุผล" required value="มาสาย">
+                                <input type="number" name="score_change" placeholder="+/-" style="width: 70px;"
+                                    required>
                                 <button type="submit" class="btn btn-secondary"
-                                    style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">บันทึก</button>
+                                    style="padding: 0.3rem 0.8rem;">บันทึก</button>
                             </form>
                         </td>
                     </tr>
                     <% }); %>
             </tbody>
         </table>
+    </div>
+
+    <div class="card">
+        <h3>ลงคะแนนสอบ (Grades Input)</h3>
+        <p class="text-muted mb-4">เลือกวิชาและนักเรียนเพื่อบันทึกคะแนน (Demo: กรอก Student ID และ Subject ID)</p>
+        <form action="/teacher/grade" method="POST" class="grid-4" style="align-items: end;">
+            <div class="form-group" style="margin: 0;">
+                <label>Student ID (DB ID)</label>
+                <input type="number" name="student_id" class="form-control" placeholder="ID" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Subject ID (DB ID)</label>
+                <input type="number" name="subject_id" class="form-control" placeholder="ID" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Midterm (50)</label>
+                <input type="number" name="grade_midterm" class="form-control" max="50" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Final (50)</label>
+                <input type="number" name="grade_final" class="form-control" max="50" required>
+            </div>
+            <button type="submit" class="btn btn-primary"
+                style="grid-column: span 4; margin-top: 1rem;">บันทึกคะแนน</button>
+        </form>
+
+        <div class="mt-4">
+            <h4>รหัสวิชาของท่าน:</h4>
+            <ul>
+                <% subjects.forEach(sub=> { %>
+                    <li>ID: <strong>
+                            <%= sub.id %>
+                        </strong> | <%= sub.code %> - <%= sub.name %>
+                    </li>
+                    <% }) %>
+            </ul>
+        </div>
     </div>
 
     <%- include('../layouts/footer') %>

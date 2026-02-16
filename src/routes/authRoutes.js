@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../../database/db');
+const db = require('../../database');
+
+router.get('/login', (req, res) => {
+    res.render('auth/login', { error: null, user: null });
+});
 
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -15,6 +19,8 @@ router.post('/login', (req, res) => {
         }
 
         req.session.user = row;
+        // Redirect based on role
+        if (row.role === 'executive') return res.redirect('/executive/dashboard');
         res.redirect(`/${row.role}/dashboard`);
     });
 });

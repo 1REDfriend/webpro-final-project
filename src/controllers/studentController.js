@@ -1,12 +1,12 @@
-const db = require('../../database/db');
+const db = require('../../database');
 
 const getStudentData = (userId) => {
     return new Promise((resolve, reject) => {
         db.get(`
-            SELECT s.*, c.name as class_name, u.name as name
+            SELECT s.*, c.name as classroom_name, u.full_name as name
             FROM students s
             JOIN users u ON s.user_id = u.id
-            JOIN classes c ON s.class_id = c.id
+            JOIN classrooms c ON s.classroom_id = c.id
             WHERE u.id = ?
         `, [userId], (err, row) => {
             if (err) reject(err);
@@ -36,11 +36,17 @@ exports.getGrades = async (req, res) => {
         `, [student.id], (err, grades) => {
             if (err) throw err;
 
-            // Calculate GPA
+            // Calculate GPA (Simplified for demonstration)
             let totalCredits = 0;
             let totalPoints = 0;
             grades.forEach(g => {
-                const points = parseFloat(g.grade === 'F' ? 0 : g.grade);
+                let points = 0;
+                if (g.grade_char === 'A') points = 4;
+                else if (g.grade_char === 'B') points = 3;
+                else if (g.grade_char === 'C') points = 2;
+                else if (g.grade_char === 'D') points = 1;
+                else points = 0;
+
                 totalPoints += points * g.credit;
                 totalCredits += g.credit;
             });
@@ -57,17 +63,14 @@ exports.getGrades = async (req, res) => {
 exports.getSchedule = async (req, res) => {
     try {
         const student = await getStudentData(req.session.user.id);
-        // Mock schedule - In a real app this would be more complex
         db.all(`
-            SELECT s.code, s.name, t.user_id as teacher_user_id
-            FROM enrollments e
-            JOIN subjects s ON e.subject_id = s.id
-            JOIN teachers t ON s.teacher_id = t.id
-            WHERE e.student_id = ?
-        `, [student.id], (err, subjects) => {
-            // Fetch teacher names
-            // Simplified for now, just render grid
-            res.render('student/schedule', { student, subjects });
+            SELECT sch.*, s.code, s.name
+            FROM schedules sch
+            JOIN subjects s ON sch.subject_id = s.id
+            WHERE sch.classroom_id = ?
+            ORDER BY sch.day, sch.time_slot
+        `, [student.classroom_id], (err, schedule) => {
+            res.render('student/schedule', { student, schedule });
         });
     } catch (err) {
         console.error(err);
@@ -77,7 +80,7 @@ exports.getSchedule = async (req, res) => {
 
 exports.getRequests = async (req, res) => {
     try {
-        db.all('SELECT * FROM requests WHERE sender_id = ? ORDER BY created_at DESC', [req.session.user.id], (err, requests) => {
+        db.all('SELECT * FROM requests WHERE user_id = ? ORDER BY date DESC', [req.session.user.id], (err, requests) => {
             if (err) throw err;
             res.render('student/requests', { requests });
         });
@@ -88,9 +91,9 @@ exports.getRequests = async (req, res) => {
 };
 
 exports.postRequest = (req, res) => {
-    const { type, details } = req.body;
-    db.run('INSERT INTO requests (sender_id, type, details) VALUES (?, ?, ?)',
-        [req.session.user.id, type, details], (err) => {
+    const { topic, description } = req.body;
+    db.run('INSERT INTO requests (user_id, topic, description) VALUES (?, ?, ?)',
+        [req.session.user.id, topic, description], (err) => {
             if (err) console.error(err);
             res.redirect('/student/requests');
         });

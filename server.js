@@ -9,12 +9,12 @@ const port = 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-    secret: 'secret-key', // Change in production
+    secret: 'kstudent-secret-key-2024',
     resave: false,
     saveUninitialized: true
 }));
 
-// Make user available to all views
+// Global User Middleware
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     next();
@@ -24,26 +24,26 @@ app.use((req, res, next) => {
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Database Setup (Will be imported)
-const db = require('./database/db');
+// Database
+const db = require('./database');
 
-// Component Routes
+// Routes
 const authRoutes = require('./src/routes/authRoutes');
-app.use('/', authRoutes);
-
 const studentRoutes = require('./src/routes/studentRoutes');
-app.use('/student', studentRoutes);
-
 const teacherRoutes = require('./src/routes/teacherRoutes');
-app.use('/teacher', teacherRoutes);
-
 const staffRoutes = require('./src/routes/staffRoutes');
-app.use('/staff', staffRoutes);
-
 const managerRoutes = require('./src/routes/managerRoutes');
-app.use('/manager', managerRoutes);
 
-// Default Route
+app.use('/', authRoutes);
+app.use('/student', studentRoutes);
+app.use('/teacher', teacherRoutes);
+app.use('/staff', staffRoutes);
+app.use('/sys-admin', managerRoutes); // Mapping manager/executive to sys-admin route or similar
+
+// Alias executive to manager controller for now, or update manager routes to be executive
+app.use('/executive', managerRoutes);
+
+// Root Redirect
 app.get('/', (req, res) => {
     if (req.session.user) {
         return res.redirect(`/${req.session.user.role}/dashboard`);
@@ -51,13 +51,6 @@ app.get('/', (req, res) => {
     res.redirect('/login');
 });
 
-app.get('/login', (req, res) => {
-    if (req.session.user) {
-        return res.redirect('/');
-    }
-    res.render('auth/login', { error: null });
-});
-
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`KStudent Server running on http://localhost:${port}`);
 });

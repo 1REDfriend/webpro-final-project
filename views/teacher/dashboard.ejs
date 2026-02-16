@@ -5,26 +5,21 @@
     <div class="card">
         <h3>ข้อมูลส่วนตัว</h3>
         <p><strong>ชื่อ-นามสกุล:</strong>
-            <%= teacher.name %>
+            <%= teacher.full_name %>
         </p>
-        <p><strong>หมวดวิชา:</strong>
-            <%= teacher.department %>
-        </p>
-        <p><strong>ที่ปรึกษาชั้น:</strong>
-            <%= teacher.homeroom_class_id ? 'Class ID ' + teacher.homeroom_class_id : 'ไม่มี' %>
-        </p>
+        <p><strong>สถานะ:</strong> บุคลากรครู (Teacher)</p>
     </div>
 
-    <div class="row" style="display: flex; gap: 1rem;">
-        <div class="card" style="flex: 1;">
-            <h3>จัดการห้องเรียน</h3>
-            <p>ดูรายชื่อนักเรียนและจัดการคะแนนความประพฤติ</p>
-            <a href="/teacher/classes" class="btn btn-primary">ไปที่ห้องเรียน</a>
+    <div class="grid-2">
+        <div class="card">
+            <h3>จัดการการเรียนการสอน</h3>
+            <p>บันทึกคะแนนสอบและพฤติกรรมนักเรียน</p>
+            <a href="/teacher/classes" class="btn btn-primary">จัดการห้องเรียน / ลงคะแนน</a>
         </div>
-        <div class="card" style="flex: 1;">
-            <h3>คำร้อง</h3>
-            <p>ส่งคำร้องถึงฝ่ายธุรการ</p>
-            <a href="/teacher/requests" class="btn btn-primary">จัดการคำร้อง</a>
+        <div class="card">
+            <h3>ยื่นคำร้อง</h3>
+            <p>ส่งคำร้องถึงฝ่ายธุรการ/บริหาร</p>
+            <a href="/teacher/requests" class="btn btn-primary">ระบบคำร้อง</a>
         </div>
     </div>
 

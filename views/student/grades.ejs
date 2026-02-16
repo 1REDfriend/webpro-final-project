@@ -1,10 +1,10 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">ผลการเรียน</h2>
+    <h2 class="mb-4">ผลการเรียน (Transcript)</h2>
 
     <div class="card">
-        <div class="flex-between mb-4">
-            <h3>ภาคเรียนที่ 1/2024</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3>ภาคเรียนที่ 1/2026</h3>
             <button onclick="window.print()" class="btn btn-secondary">พิมพ์ใบเกรด</button>
         </div>
 
@@ -14,7 +14,9 @@
                     <th>รหัสวิชา</th>
                     <th>ชื่อวิชา</th>
                     <th>หน่วยกิต</th>
-                    <th>คะแนน</th>
+                    <th>คะแนนเก็บ</th>
+                    <th>คะแนนสอบ</th>
+                    <th>รวม</th>
                     <th>เกรด</th>
                 </tr>
             </thead>
@@ -31,18 +33,25 @@
                             <%= item.credit %>
                         </td>
                         <td>
-                            <%= item.score %>
+                            <%= item.grade_midterm %>
                         </td>
                         <td>
-                            <%= item.grade %>
+                            <%= item.grade_final %>
+                        </td>
+                        <td>
+                            <%= item.total_score %>
+                        </td>
+                        <td style="font-weight: bold; color: var(--accent);">
+                            <%= item.grade_char %>
                         </td>
                     </tr>
                     <% }); %>
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="4" style="text-align: right; font-weight: bold;">เกรดเฉลี่ย (GPA)</td>
-                    <td style="font-weight: bold;">
+                    <td colspan="6" style="text-align: right; font-weight: bold; padding-right: 1rem;">เกรดเฉลี่ยสะสม
+                        (GPA)</td>
+                    <td style="font-weight: bold; font-size: 1.1rem; color: #00b894;">
                         <%= gpa %>
                     </td>
                 </tr>

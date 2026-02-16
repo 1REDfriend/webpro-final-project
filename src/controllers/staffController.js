@@ -1,11 +1,11 @@
-const db = require('../../database/db');
+const db = require('../../database');
 
 exports.getDashboard = (req, res) => {
     db.all(`
-        SELECT r.*, u.name as sender_name, u.role as sender_role 
+        SELECT r.*, u.full_name as sender_name, u.role as sender_role 
         FROM requests r
-        JOIN users u ON r.sender_id = u.id
-        ORDER BY r.created_at DESC
+        JOIN users u ON r.user_id = u.id
+        ORDER BY r.date DESC
     `, (err, requests) => {
         if (err) {
             console.error(err);
@@ -16,9 +16,9 @@ exports.getDashboard = (req, res) => {
 };
 
 exports.updateRequestStatus = (req, res) => {
-    const { id, status, response } = req.body;
-    db.run('UPDATE requests SET status = ?, response = ? WHERE id = ?',
-        [status, response, id], (err) => {
+    const { id, status, reply } = req.body;
+    db.run('UPDATE requests SET status = ?, reply = ? WHERE id = ?',
+        [status, reply, id], (err) => {
             if (err) console.error(err);
             res.redirect('/staff/dashboard');
         });

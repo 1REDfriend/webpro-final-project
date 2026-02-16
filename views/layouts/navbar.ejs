@@ -1,10 +1,10 @@
 <nav class="navbar">
-    <a href="/" class="navbar-brand">
-        <img class="nav-logo" src="/logo.svg" alt="logo.svg">
-        KStudent School</a>
+    <a href="/" class="navbar-brand">KStudent SDMS</a>
     <div class="navbar-menu">
         <% if (user) { %>
-            <span>สวัสดี, <%= user.name %> (<%= user.role %>)</span>
+            <span>
+                <%= user.full_name %> (<%= user.role.toUpperCase() %>)
+            </span>
 
             <% if (user.role==='student' ) { %>
                 <a href="/student/dashboard">หน้าหลัก</a>
@@ -23,13 +23,11 @@
                                 <a href="/staff/dashboard">จัดการคำร้อง</a>
                                 <% } %>
 
-                                    <% if (user.role==='manager' ) { %>
-                                        <a href="/manager/dashboard">ภาพรวม</a>
+                                    <% if (user.role==='executive' ) { %>
+                                        <a href="/executive/dashboard">ภาพรวม</a>
                                         <% } %>
 
-                                            <a href="/logout" class="auth-btn">ออกจากระบบ</a>
-                                            <% } else { %>
-                                                <a href="/login">เข้าสู่ระบบ</a>
-                                                <% } %>
+                                            <a href="/logout" class="logout-btn">ออกจากระบบ</a>
+                                            <% } %>
     </div>
 </nav>

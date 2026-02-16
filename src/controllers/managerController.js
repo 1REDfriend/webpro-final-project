@@ -1,33 +1,35 @@
-const db = require('../../database/db');
+const db = require('../../database');
 
 exports.getDashboard = async (req, res) => {
     try {
         const stats = {};
 
         // Count Students
-        const students = await new Promise((resolve) => db.get('SELECT COUNT(*) as count FROM students', (err, row) => resolve(row.count)));
-        stats.studentCount = students;
+        stats.studentCount = await new Promise((resolve) => db.get('SELECT COUNT(*) as c FROM students', (e, r) => resolve(r.c)));
 
         // Count Teachers
-        const teachers = await new Promise((resolve) => db.get('SELECT COUNT(*) as count FROM teachers', (err, row) => resolve(row.count)));
-        stats.teacherCount = teachers;
+        stats.teacherCount = await new Promise((resolve) => db.get('SELECT COUNT(*) as c FROM users WHERE role = "teacher"', (e, r) => resolve(r.c)));
 
-        // Count Requests
-        const requests = await new Promise((resolve) => db.get('SELECT COUNT(*) as count FROM requests', (err, row) => resolve(row.count)));
-        stats.requestCount = requests;
+        // Count Requests Pending
+        stats.requestCount = await new Promise((resolve) => db.get('SELECT COUNT(*) as c FROM requests WHERE status = "Pending"', (e, r) => resolve(r.c)));
 
-        // Count Classes
-        const classes = await new Promise((resolve) => db.get('SELECT COUNT(*) as count FROM classes', (err, row) => resolve(row.count)));
-        stats.classCount = classes;
+        // Count Classrooms
+        stats.classCount = await new Promise((resolve) => db.get('SELECT COUNT(*) as c FROM classrooms', (e, r) => resolve(r.c)));
 
-        // Average GPA Calculation (Simplified)
+        // Average GPA Calculation
         const avgGpa = await new Promise((resolve) => {
-            db.all('SELECT grade, credit FROM enrollments WHERE grade != "F"', (err, rows) => {
+            db.all('SELECT total_score, credit FROM enrollments e JOIN subjects s ON e.subject_id = s.id', (err, rows) => {
                 if (err || rows.length === 0) return resolve(0);
                 let totalPoints = 0;
                 let totalCredits = 0;
                 rows.forEach(r => {
-                    totalPoints += parseFloat(r.grade) * r.credit;
+                    let points = 0;
+                    if (r.total_score >= 80) points = 4;
+                    else if (r.total_score >= 70) points = 3;
+                    else if (r.total_score >= 60) points = 2;
+                    else if (r.total_score >= 50) points = 1;
+
+                    totalPoints += points * r.credit;
                     totalCredits += r.credit;
                 });
                 resolve(totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0);

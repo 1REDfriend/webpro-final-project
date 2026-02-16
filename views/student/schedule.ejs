@@ -3,32 +3,39 @@
     <h2 class="mb-4">ตารางเรียน</h2>
 
     <div class="card">
-        <h3>รายวิชาที่ลงทะเบียน</h3>
+        <h3>ตารางเรียนห้อง <%= student.classroom_name %>
+        </h3>
         <table>
             <thead>
                 <tr>
+                    <th>วัน</th>
+                    <th>เวลา</th>
                     <th>รหัสวิชา</th>
                     <th>ชื่อวิชา</th>
-                    <th>ครูผู้สอน</th>
                 </tr>
             </thead>
             <tbody>
-                <% subjects.forEach(s=> { %>
+                <% schedule.forEach(s=> { %>
                     <tr>
+                        <td><span class="badge" style="background-color: #0f3460; font-weight: normal;">
+                                <%= s.day %>
+                            </span></td>
+                        <td>
+                            <%= s.time_slot %>
+                        </td>
                         <td>
                             <%= s.code %>
                         </td>
                         <td>
                             <%= s.name %>
                         </td>
-                        <td>
-                            <%= s.teacher_user_id ? 'Teacher' : 'TBD' %>
-                        </td>
                     </tr>
                     <% }); %>
             </tbody>
         </table>
-        <p class="mt-4 text-muted">*ตารางเรียนแบบละเอียด (วัน/เวลา) อยู่ระหว่างการปรับปรุงระบบ</p>
+        <% if (schedule.length===0) { %>
+            <p class="text-center text-muted mt-4">ยังไม่มีตารางเรียนในระบบ</p>
+            <% } %>
     </div>
 
     <%- include('../layouts/footer') %>

@@ -2,39 +2,38 @@
 
     <h2 class="mb-4">แผงควบคุมนักเรียน</h2>
 
-    <div class="card">
-        <h3>ข้อมูลส่วนตัว</h3>
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; align-items: start;">
-            <div>
-                <img src="https://via.placeholder.com/150" alt="Profile" style="border-radius: 50%; width: 150px;">
+    <div class="grid-2">
+        <div class="card">
+            <h3>ข้อมูลส่วนตัว</h3>
+            <div style="display: flex; gap: 1.5rem; align-items: center;">
+                <img src="https://via.placeholder.com/100/0f3460/00d2ff?text=User" alt="Profile"
+                    style="border-radius: 50%; width: 100px; border: 2px solid var(--accent);">
+                <div>
+                    <p style="font-size: 1.2rem; font-weight: bold;">
+                        <%= student.name %>
+                    </p>
+                    <p class="text-muted" style="margin: 0.5rem 0;">รหัสนักเรียน: <%= student.student_code %>
+                    </p>
+                    <p class="text-muted" style="margin: 0.5rem 0;">ชั้นเรียน: <%= student.classroom_name %>
+                    </p>
+                </div>
             </div>
-            <div>
-                <p><strong>ชื่อ-นามสกุล:</strong>
-                    <%= student.name %>
-                </p>
-                <p><strong>รหัสนักเรียน:</strong>
-                    <%= student.student_code %>
-                </p>
-                <p><strong>ชั้นเรียน:</strong>
-                    <%= student.class_name %>
-                </p>
-                <p><strong>สถานะ:</strong> กำลังศึกษา</p>
+        </div>
+
+        <div class="card" style="text-align: center;">
+            <h3>คะแนนความประพฤติ</h3>
+            <div
+                style="font-size: 3.5rem; font-weight: bold; color: <%= student.behavior_score < 50 ? '#ff6b6b' : '#00b894' %>; margin: 1rem 0;">
+                <%= student.behavior_score %>
             </div>
+            <p class="text-muted">คะแนนเริ่มต้น 100 คะแนน</p>
         </div>
     </div>
 
-    <div class="card">
-        <h3>คะแนนความประพฤติ</h3>
-        <p class="mb-4"
-            style="font-size: 2rem; font-weight: bold; color: <%= student.behavior_score < 50 ? 'red' : 'green' %>">
-            100 <!-- Mock initial score -->
-        </p>
-        <p class="text-muted">คะแนนเริ่มต้น 100 คะแนน</p>
-    </div>
-
-    <div class="card">
+    <div class="card mt-4">
         <h3>ประกาศจากโรงเรียน</h3>
-        <p>ยินดีต้อนรับสู่เปิดเทอมภาคเรียนที่ 1 ปีการศึกษา 2567</p>
+        <p>ยินดีต้อนรับสู่ระบบ KStudent ใหม่! กรุณาตรวจสอบตารางเรียนและผลการเรียนของท่าน
+            หากพบข้อผิดพลาดโปรดแจ้งงานทะเบียน</p>
     </div>
 
     <%- include('../layouts/footer') %>

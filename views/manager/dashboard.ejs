@@ -1,43 +1,44 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">แผงควบคุมผู้บริหาร</h2>
+    <h2 class="mb-4">แผงควบคุมผู้บริหาร (Executive Dashboard)</h2>
 
-    <div class="row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-        <div class="card text-center">
-            <h3>นักเรียนทั้งหมด</h3>
-            <p style="font-size: 2.5rem; color: var(--primary-color); font-weight: bold;">
+    <div class="grid-4 mb-4">
+        <div class="card" style="text-align: center; border-top: 4px solid var(--accent);">
+            <h3>นักเรียน</h3>
+            <div style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">
                 <%= stats.studentCount %>
-            </p>
-            <p>คน</p>
+            </div>
+            <p class="text-muted">จำนวนคน</p>
         </div>
-        <div class="card text-center">
+        <div class="card" style="text-align: center; border-top: 4px solid #ff6b6b;">
             <h3>บุคลากรครู</h3>
-            <p style="font-size: 2.5rem; color: var(--primary-dark); font-weight: bold;">
+            <div style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">
                 <%= stats.teacherCount %>
-            </p>
-            <p>ท่าน</p>
+            </div>
+            <p class="text-muted">จำนวนท่าน</p>
         </div>
-        <div class="card text-center">
-            <h3>จำนวนห้องเรียน</h3>
-            <p style="font-size: 2.5rem; color: #7B1FA2; font-weight: bold;">
-                <%= stats.classCount %>
-            </p>
-            <p>ห้อง</p>
-        </div>
-        <div class="card text-center">
-            <h3>คำร้องค้างดำเนินการ</h3>
-            <p style="font-size: 2.5rem; color: #E64A19; font-weight: bold;">
+        <div class="card" style="text-align: center; border-top: 4px solid #feca57;">
+            <h3>คำร้องรออนุมัติ</h3>
+            <div style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">
                 <%= stats.requestCount %>
-            </p>
-            <p>รายการ</p>
+            </div>
+            <p class="text-muted">รายการ</p>
+        </div>
+        <div class="card" style="text-align: center; border-top: 4px solid #00b894;">
+            <h3>GPA เฉลี่ย</h3>
+            <div style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">
+                <%= stats.avgGpa %>
+            </div>
+            <p class="text-muted">ทั้งโรงเรียน</p>
         </div>
     </div>
 
-    <div class="card mt-4">
-        <h3>สถิติผลการเรียนเฉลี่ยทั้งโรงเรียน</h3>
-        <p>GPA เฉลี่ยของนักเรียนทั้งหมด: <strong>
-                <%= stats.avgGpa %>
-            </strong></p>
+    <div class="card">
+        <h3>รายงานสรุปภาพรวม</h3>
+        <p>ขณะนี้ระบบ KStudent มีห้องเรียนทั้งหมด <strong>
+                <%= stats.classCount %>
+            </strong> ห้อง และเปิดสอนรายวิชาต่างๆ ตามหลักสูตร</p>
+        <!-- Future: Add Charts using Chart.js if requested -->
     </div>
 
     <%- include('../layouts/footer') %>
