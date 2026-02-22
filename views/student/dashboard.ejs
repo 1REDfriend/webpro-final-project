@@ -6,8 +6,16 @@
         <div class="card">
             <h3>ข้อมูลส่วนตัว</h3>
             <div style="display: flex; gap: 1.5rem; align-items: center;">
-                <img src="https://via.placeholder.com/100/0f3460/00d2ff?text=User" alt="Profile"
-                    style="border-radius: 50%; width: 100px; border: 2px solid var(--accent);">
+                <% 
+                    let profileImg = '/image/default-profile.png';
+                    if (student.profile_pic && student.profile_pic !== 'default.png') {
+                        profileImg = student.profile_pic.startsWith('http') || student.profile_pic.startsWith('/') 
+                            ? student.profile_pic 
+                            : '/image/' + student.profile_pic;
+                    }
+                %>
+                <img src="<%= profileImg %>" alt="Profile"
+                     style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover; border: 2px solid var(--accent);">
                 <div>
                     <p style="font-size: 1.2rem; font-weight: bold;">
                         <%= student.name %>

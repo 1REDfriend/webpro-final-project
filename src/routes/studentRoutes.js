@@ -10,5 +10,6 @@ router.get('/grades', studentController.getGrades);
 router.get('/schedule', studentController.getSchedule);
 router.get('/requests', studentController.getRequests);
 router.post('/requests', studentController.postRequest);
+router.get('/transcript/download', studentController.downloadTranscript);
 
 module.exports = router;

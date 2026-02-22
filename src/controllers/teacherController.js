@@ -14,11 +14,46 @@ const getTeacherData = (userId) => {
 exports.getDashboard = async (req, res) => {
     try {
         const teacher = await getTeacherData(req.session.user.id);
-        res.render('teacher/dashboard', { teacher });
+        db.all(`SELECT * FROM subjects WHERE teacher_id = ?`, [teacher.id], (err, subjects) => {
+            if (err) throw err;
+            db.all(`SELECT * FROM classrooms ORDER BY name`, [], (err, classrooms) => {
+                if (err) throw err;
+                let homeroom = null;
+                if (teacher.homeroom_classroom_id) {
+                    const room = classrooms.find(c => c.id === teacher.homeroom_classroom_id);
+                    homeroom = room ? room.name : null;
+                }
+                res.render('teacher/dashboard', { teacher, subjects, classrooms, homeroom });
+            });
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('Database Error');
     }
+};
+
+exports.addSubject = (req, res) => {
+    const { code, name, credit } = req.body;
+    db.run(`INSERT INTO subjects (code, name, credit, teacher_id) VALUES (?, ?, ?, ?)`,
+        [code, name, credit, req.session.user.id], (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send('Database Error');
+            }
+            res.redirect('/teacher/dashboard');
+        });
+};
+
+exports.selectHomeroom = (req, res) => {
+    const { classroom_id } = req.body;
+    db.run(`UPDATE users SET homeroom_classroom_id = ? WHERE id = ?`,
+        [classroom_id, req.session.user.id], (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send('Database Error');
+            }
+            res.redirect('/teacher/dashboard');
+        });
 };
 
 exports.getClasses = async (req, res) => {
@@ -29,18 +64,38 @@ exports.getClasses = async (req, res) => {
         db.all(`SELECT * FROM subjects WHERE teacher_id = ?`, [teacher.id], (err, subjects) => {
             if (err) throw err;
 
-            // For now, let's just show a list of students from all classrooms (simplified for MVC demo)
-            // Ideally, we would select a subject/classroom to view
-
-            db.all(`
-                SELECT s.*, u.full_name as name, c.name as classroom_name
-                FROM students s
-                JOIN users u ON s.user_id = u.id
-                JOIN classrooms c ON s.classroom_id = c.id
-                ORDER BY c.name, s.student_code
-            `, [], (err, students) => {
+            // Fetch list of all classrooms for the filter dropdown
+            db.all(`SELECT * FROM classrooms ORDER BY name`, [], (err, classrooms) => {
                 if (err) throw err;
-                res.render('teacher/classes', { teacher, subjects, students });
+
+                const classroom_id = req.query.classroom_id;
+                const subject_id = req.query.subject_id;
+
+                let query = `
+                    SELECT s.*, u.full_name as name, c.name as classroom_name
+                    FROM students s
+                    JOIN users u ON s.user_id = u.id
+                    JOIN classrooms c ON s.classroom_id = c.id
+                    WHERE 1=1
+                `;
+                let params = [];
+
+                if (classroom_id) {
+                    query += ` AND s.classroom_id = ?`;
+                    params.push(classroom_id);
+                }
+
+                if (subject_id) {
+                    query += ` AND s.id IN (SELECT student_id FROM enrollments WHERE subject_id = ?)`;
+                    params.push(subject_id);
+                }
+
+                query += ` ORDER BY c.name, s.student_code`;
+
+                db.all(query, params, (err, students) => {
+                    if (err) throw err;
+                    res.render('teacher/classes', { teacher, subjects, classrooms, students, filters: { classroom_id, subject_id } });
+                });
             });
         });
     } catch (err) {

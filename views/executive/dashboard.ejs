@@ -1,0 +1,97 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">แผงควบคุมผู้บริหาร (Executive Dashboard)</h2>
+
+    <div class="grid-4 mb-4">
+        <div class="card" style="text-align: center; border-top: 4px solid var(--primary);">
+            <h4 class="text-muted">จำนวนนักเรียน</h4>
+            <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary);">
+                <%= stats.studentCount %>
+            </div>
+            <p class="text-muted">คน ทั้งหมด</p>
+        </div>
+
+        <div class="card" style="text-align: center; border-top: 4px solid var(--accent);">
+            <h4 class="text-muted">จำนวนครู</h4>
+            <div style="font-size: 2.5rem; font-weight: bold; color: var(--accent);">
+                <%= stats.teacherCount %>
+            </div>
+            <p class="text-muted">คน ทั้งหมด</p>
+        </div>
+
+        <div class="card" style="text-align: center; border-top: 4px solid #6c5ce7;">
+            <h4 class="text-muted">พนักงาน/ฝ่ายธุรการ</h4>
+            <div style="font-size: 2.5rem; font-weight: bold; color: #6c5ce7;">
+                <%= stats.staffCount %>
+            </div>
+            <p class="text-muted">คน ทั้งหมด</p>
+        </div>
+
+        <div class="card" style="text-align: center; border-top: 4px solid #00b894;">
+            <h4 class="text-muted">เกรดเฉลี่ยรวม (โรงเรียน)</h4>
+            <div style="font-size: 2.5rem; font-weight: bold; color: #00b894;">
+                <%= stats.avgGpa %>
+            </div>
+            <p class="text-muted">GPA</p>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <h3>สถิติคำร้อง (Requests)</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                <div
+                    style="display: flex; justify-content: space-between; padding: 1rem; background: #ffc400; border-radius: 8px;">
+                    <span style="font-weight: bold; color: #ffffff;">รอดำเนินการ (Pending)</span>
+                    <span style="font-weight: bold; font-size: 1.2rem;">
+                        <%= stats.requestPendingCount %>
+                    </span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 1rem; background: #0bad31; border-radius: 8px;">
+                    <span style="font-weight: bold; color: #ffffff;">อนุมัติแล้ว (Approved)</span>
+                    <span style="font-weight: bold; font-size: 1.2rem;">
+                        <%= stats.requestApprovedCount %>
+                    </span>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; padding: 1rem; background: #dd2333; border-radius: 8px;">
+                    <span style="font-weight: bold; color: #ffffff;">ปฏิเสธ (Rejected)</span>
+                    <span style="font-weight: bold; font-size: 1.2rem;">
+                        <%= stats.requestRejectedCount %>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>เกรดเฉลี่ยแยกตามห้องเรียน</h3>
+            <% if (stats.gpaByClassroom && stats.gpaByClassroom.length> 0) { %>
+                <table style="margin-top: 1rem;">
+                    <thead>
+                        <tr>
+                            <th>ห้องเรียน</th>
+                            <th>เกรดเฉลี่ย (GPA)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% stats.gpaByClassroom.forEach(item=> { %>
+                            <tr>
+                                <td>
+                                    <%= item.classroom %>
+                                </td>
+                                <td
+                                    style="font-weight: bold; color: <%= item.gpa >= 3.0 ? '#00b894' : (item.gpa >= 2.0 ? '#e1b12c' : '#ff6b6b') %>;">
+                                    <%= item.gpa %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+                <% } else { %>
+                    <p class="text-muted mt-4">ยังไม่มีข้อมูลผลการเรียนที่ถูกประมวลผลสำหรับรายห้อง</p>
+                    <% } %>
+        </div>
+    </div>
+
+    <%- include('../layouts/footer') %>

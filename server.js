@@ -33,15 +33,14 @@ const studentRoutes = require('./src/routes/studentRoutes');
 const teacherRoutes = require('./src/routes/teacherRoutes');
 const staffRoutes = require('./src/routes/staffRoutes');
 const managerRoutes = require('./src/routes/managerRoutes');
+const executiveRoutes = require('./src/routes/executiveRoutes');
 
 app.use('/', authRoutes);
 app.use('/student', studentRoutes);
 app.use('/teacher', teacherRoutes);
 app.use('/staff', staffRoutes);
-app.use('/sys-admin', managerRoutes); // Mapping manager/executive to sys-admin route or similar
-
-// Alias executive to manager controller for now, or update manager routes to be executive
-app.use('/executive', managerRoutes);
+app.use('/sys-admin', managerRoutes); // sys-admin maps to manager
+app.use('/executive', executiveRoutes); // Proper executive routes
 
 // Root Redirect
 app.get('/', (req, res) => {

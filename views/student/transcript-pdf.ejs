@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Transcript - <%= student.name %></title>
+    <style>
+        body {
+            font-family: 'Sarabun', 'Roboto', sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            margin: 0 0 10px 0;
+        }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .header-info div {
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .center {
+            text-align: center;
+        }
+        .gpa-row {
+            font-weight: bold;
+            background-color: #eef;
+        }
+        .footer {
+            margin-top: 50px;
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 50px;
+        }
+        .signature-box {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>โรงเรียนตัวอย่าง</h1>
+    <h2>ระเบียนแสดงผลการเรียน (Transcript)</h2>
+
+    <div class="header-info">
+        <div>
+            <p><strong>รหัสประจำตัว:</strong> <%= student.student_code %></p>
+            <p><strong>ชื่อ-สกุล:</strong> <%= student.name %></p>
+        </div>
+        <div>
+            <p><strong>ชั้นมัธยมศึกษาปีที่:</strong> <%= student.classroom_name %></p>
+            <p><strong>คะแนนความประพฤติ:</strong> <%= student.behavior_score %>/100</p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>รหัสวิชา</th>
+                <th>ชื่อวิชา</th>
+                <th class="center">หน่วยกิต</th>
+                <th class="center">เกรด</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% grades.forEach(item => { %>
+                <tr>
+                    <td><%= item.code %></td>
+                    <td><%= item.name %></td>
+                    <td class="center"><%= item.credit %></td>
+                    <td class="center" style="font-weight: bold;"><%= item.grade_char %></td>
+                </tr>
+            <% }); %>
+            <tr class="gpa-row">
+                <td colspan="3" style="text-align: right;">เกรดเฉลี่ยสะสม (GPA)</td>
+                <td class="center"><%= gpa %></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div class="signature-box">
+            <p>................................................</p>
+            <p>(นาย/นาง ผู้อำนวยการโรงเรียน)</p>
+            <p>ผู้อำนวยการ</p>
+        </div>
+    </div>
+
+</body>
+</html>

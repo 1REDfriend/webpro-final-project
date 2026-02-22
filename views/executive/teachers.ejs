@@ -1,0 +1,92 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">จัดการบุคลากรครู</h2>
+
+    <% if (error) { %>
+        <div class="alert alert-danger"
+            style="background-color: #f82020; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+            <%= error %>
+        </div>
+        <% } %>
+
+            <% if (success) { %>
+                <div class="alert alert-success"
+                    style="background-color: #28a745; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    <%= success %>
+                </div>
+                <% } %>
+
+                    <div class="grid-2">
+                        <!-- Add Teacher Form -->
+                        <div class="card">
+                            <h3>เพิ่มบุคลากรครูใหม่</h3>
+                            <form action="/executive/teachers" method="POST" style="margin-top: 1rem;">
+                                <div class="form-group mb-3">
+                                    <label>ชื่อ-นามสกุล</label>
+                                    <input type="text" name="full_name" class="form-control" required
+                                        placeholder="นายสมชาย ใจดี">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>ชื่อผู้ใช้งาน (Username สำหรับเข้าสู่ระบบ)</label>
+                                    <input type="text" name="username" class="form-control" required
+                                        placeholder="t_somchai">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>รหัสผ่าน</label>
+                                    <input type="text" name="password" class="form-control" required
+                                        placeholder="กำหนดรหัสผ่านเบื้องต้น">
+                                </div>
+                                <button type="submit" class="btn btn-primary"
+                                    style="width: 100%;">เพิ่มบุคลากรครู</button>
+                            </form>
+                        </div>
+
+                        <!-- Teacher List -->
+                        <div class="card">
+                            <h3>รายชื่อครูทั้งหมด</h3>
+                            <% if (teachers && teachers.length> 0) { %>
+                                <div style="overflow-x: auto; margin-top: 1rem;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>รูปภาพ</th>
+                                                <th>ชื่อ-นามสกุล</th>
+                                                <th>ชื่อผู้ใช้</th>
+                                                <th>จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% teachers.forEach(t=> { %>
+                                                <tr>
+                                                    <td>
+                                                        <img src="/image/<%= t.profile_pic === 'default.png' ? 'default-profile.png' : t.profile_pic %>"
+                                                            alt="<%= t.full_name %>"
+                                                            style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                                    </td>
+                                                    <td>
+                                                        <%= t.full_name %>
+                                                    </td>
+                                                    <td>
+                                                        <%= t.username %>
+                                                    </td>
+                                                    <td>
+                                                        <form action="/executive/teachers/delete" method="POST"
+                                                            onsubmit="return confirm('ยืนยันการลบครูท่านนี้? หากลบแล้วจะทำให้รายวิชาที่ครูท่านนี้รับผิดชอบอยู่ไม่มีผู้สอน');"
+                                                            style="display:inline;">
+                                                            <input type="hidden" name="teacher_id" value="<%= t.id %>">
+                                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                                style="background: #e74c3c; border:none; border-radius:4px; color:white; padding:5px 10px; cursor:pointer;">ลบ</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <% } else { %>
+                                    <p class="text-muted mt-4">ยังไม่มีบุคลากรครูในระบบ</p>
+                                    <% } %>
+                        </div>
+                    </div>
+
+                    <%- include('../layouts/footer') %>

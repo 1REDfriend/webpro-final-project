@@ -18,8 +18,13 @@ db.serialize(() => {
         password TEXT NOT NULL,
         role TEXT CHECK(role IN ('student', 'teacher', 'staff', 'executive')) NOT NULL,
         full_name TEXT NOT NULL,
-        profile_pic TEXT DEFAULT 'default.png'
+        profile_pic TEXT DEFAULT 'default.png',
+        homeroom_classroom_id INTEGER
     )`);
+
+    db.run(`ALTER TABLE users ADD COLUMN homeroom_classroom_id INTEGER`, (err) => {
+        // Ignore error if column already exists
+    });
 
     // 2. Classrooms Table
     db.run(`CREATE TABLE IF NOT EXISTS classrooms (

@@ -1,0 +1,113 @@
+<%- include('../layouts/header') %>
+
+    <h2 class="mb-4">จัดการนักเรียน</h2>
+
+    <% if (error) { %>
+        <div class="alert alert-danger"
+            style="background-color: #f82020; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+            <%= error %>
+        </div>
+        <% } %>
+
+            <% if (success) { %>
+                <div class="alert alert-success"
+                    style="background-color: #28a745; color: white; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    <%= success %>
+                </div>
+                <% } %>
+
+                    <div class="grid-2">
+                        <!-- Add Student Form -->
+                        <div class="card">
+                            <h3>เพิ่มนักเรียนใหม่</h3>
+                            <form action="/executive/students" method="POST" style="margin-top: 1rem;">
+                                <div class="form-group mb-3">
+                                    <label>ชื่อ-นามสกุล</label>
+                                    <input type="text" name="full_name" class="form-control" required
+                                        placeholder="ด.ช.มานะ เรียนดี">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>รหัสนักเรียน (และใช้เป็น Username)</label>
+                                    <input type="text" name="student_code" class="form-control" required
+                                        placeholder="std1001">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>รหัสผ่าน</label>
+                                    <input type="text" name="password" class="form-control" required
+                                        placeholder="กำหนดรหัสผ่านเบื้องต้น">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>ห้องเรียน</label>
+                                    <select name="classroom_id" class="form-control" required>
+                                        <option value="">-- เลือกห้องเรียน --</option>
+                                        <% if (classrooms && classrooms.length> 0) { %>
+                                            <% classrooms.forEach(c=> { %>
+                                                <option value="<%= c.id %>">
+                                                    <%= c.name %>
+                                                </option>
+                                                <% }); %>
+                                                    <% } %>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary"
+                                    style="width: 100%;">เพิ่มนักเรียน</button>
+                            </form>
+                        </div>
+
+                        <!-- Student List -->
+                        <div class="card">
+                            <h3>รายชื่อนักเรียนทั้งหมด</h3>
+                            <% if (students && students.length> 0) { %>
+                                <div style="overflow-x: auto; margin-top: 1rem; max-height: 500px; overflow-y: auto;">
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                        <thead
+                                            style="position: sticky; top: 0; background: var(--bg-card); box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);">
+                                            <tr>
+                                                <th>รูปภาพ</th>
+                                                <th>รหัสนักเรียน</th>
+                                                <th>ชื่อ-นามสกุล</th>
+                                                <th>ห้องเรียน</th>
+                                                <th>จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% students.forEach(s=> { %>
+                                                <tr style="border-bottom: 1px solid #eee;">
+                                                    <td>
+                                                        <img src="/image/<%= s.profile_pic === 'default.png' ? 'default-profile.png' : s.profile_pic %>"
+                                                            alt="<%= s.full_name %>"
+                                                            style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                                    </td>
+                                                    <td>
+                                                        <%= s.student_code %>
+                                                    </td>
+                                                    <td>
+                                                        <%= s.full_name %>
+                                                    </td>
+                                                    <td>
+                                                        <%= s.classroom_name %>
+                                                    </td>
+                                                    <td>
+                                                        <form action="/executive/students/delete" method="POST"
+                                                            onsubmit="return confirm('ยืนยันการลบนักเรียนคนนี้? การลบจะทำให้ข้อมูลผลการเรียนและคำร้องที่เกี่ยวข้องถูกลบทั้งหมด');"
+                                                            style="display:inline;">
+                                                            <input type="hidden" name="student_id"
+                                                                value="<%= s.student_id %>">
+                                                            <input type="hidden" name="user_id"
+                                                                value="<%= s.user_id %>">
+                                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                                style="background: #e74c3c; border:none; border-radius:4px; color:white; padding:5px 10px; cursor:pointer;">ลบ</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <% } else { %>
+                                    <p class="text-muted mt-4">ยังไม่มีนักเรียนในระบบ</p>
+                                    <% } %>
+                        </div>
+                    </div>
+
+                    <%- include('../layouts/footer') %>
