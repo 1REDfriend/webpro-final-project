@@ -1,11 +1,11 @@
 :root {
-    --bg-dark: #0B1120;
-    --bg-card: #161E2E;
-    --accent: #38BDF8;
-    --accent-hover: #7DD3FC;
-    --text-main: #F1F5F9;
-    --text-muted: #94A3B8;
-    --border: #1E293B;
+    --bg-dark: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --accent: #0EA5E9;
+    --accent-hover: #0284C7;
+    --text-main: #0F172A;
+    --text-muted: #475569;
+    --border: #CBD5E1;
     --radius: 12px;
 }
 
@@ -49,6 +49,13 @@ body {
     color: var(--accent);
 }
 
+.navbar-logo {
+    width: 32px;
+    height: 32px;
+    margin-right: 4px;
+    translate: 0 5px;
+}
+
 .logout-btn {
     border: 1px solid var(--accent);
     color: var(--accent) !important;
@@ -58,7 +65,7 @@ body {
 
 .logout-btn:hover {
     background-color: var(--accent);
-    color: var(--bg-dark) !important;
+    color: #FFFFFF !important;
 }
 
 /* Container */
@@ -74,7 +81,7 @@ body {
     border-radius: var(--radius);
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 h2,
@@ -103,7 +110,7 @@ th {
 }
 
 tr:hover {
-    background-color: rgba(0, 210, 255, 0.05);
+    background-color: rgba(14, 165, 233, 0.05);
     /* Slight accent tint */
 }
 
@@ -121,7 +128,7 @@ tr:hover {
 
 .btn-primary {
     background-color: var(--accent);
-    color: var(--bg-dark);
+    color: #FFFFFF;
 }
 
 .btn-primary:hover {
@@ -157,7 +164,7 @@ label {
 .form-control {
     width: 100%;
     padding: 0.8rem;
-    background-color: #020e1f;
+    background-color: #FFFFFF;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     color: var(--text-main);
@@ -203,4 +210,57 @@ label {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
+}
+
+/* Loading Screen */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease-out;
+}
+
+.loading-content {
+    display: flex;
+    align-items: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--accent);
+    letter-spacing: 1px;
+    animation: pulse 1.5s infinite;
+}
+
+.loading-logo {
+    width: 64px;
+    height: 64px;
+    margin-right: 12px;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+
+    100% {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
 }

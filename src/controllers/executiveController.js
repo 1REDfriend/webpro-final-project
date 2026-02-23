@@ -167,6 +167,55 @@ exports.deleteTeacher = (req, res) => {
     });
 };
 
+exports.getEditTeacher = (req, res) => {
+    const teacherId = req.params.id;
+    db.get('SELECT id, username, full_name, profile_pic FROM users WHERE id = ? AND role = "teacher"', [teacherId], (err, teacher) => {
+        if (err || !teacher) {
+            console.error(err);
+            return res.status(404).send('Teacher not found or database error');
+        }
+        res.render('executive/edit_teacher', { teacher, error: req.query.error || null, success: req.query.success || null });
+    });
+};
+
+exports.updateTeacher = (req, res) => {
+    const teacherId = req.params.id;
+    const { username, password, full_name } = req.body;
+
+    // Check if new username belongs to another user
+    db.get('SELECT id FROM users WHERE username = ? AND id != ?', [username, teacherId], (err, row) => {
+        if (err) {
+            console.error(err);
+            return res.redirect(`/executive/teachers/${teacherId}/edit?error=Database Error`);
+        }
+        if (row) {
+            return res.redirect(`/executive/teachers/${teacherId}/edit?error=มีชื่อผู้ใช้นี้ในระบบแล้ว`);
+        }
+
+        if (password && password.trim() !== '') {
+            // Update with new password
+            db.run('UPDATE users SET username = ?, password = ?, full_name = ? WHERE id = ? AND role = "teacher"',
+                [username, password, full_name, teacherId], (err) => {
+                    if (err) {
+                        console.error(err);
+                        return res.redirect(`/executive/teachers/${teacherId}/edit?error=Database Error`);
+                    }
+                    res.redirect('/executive/teachers?success=อัปเดตข้อมูลครูเรียบร้อยแล้ว');
+                });
+        } else {
+            // Update without changing password
+            db.run('UPDATE users SET username = ?, full_name = ? WHERE id = ? AND role = "teacher"',
+                [username, full_name, teacherId], (err) => {
+                    if (err) {
+                        console.error(err);
+                        return res.redirect(`/executive/teachers/${teacherId}/edit?error=Database Error`);
+                    }
+                    res.redirect('/executive/teachers?success=อัปเดตข้อมูลครูเรียบร้อยแล้ว');
+                });
+        }
+    });
+};
+
 // --- Student Management ---
 
 exports.getStudents = (req, res) => {
@@ -263,6 +312,107 @@ exports.deleteStudent = (req, res) => {
                 });
             });
         });
+    });
+};
+
+// --- Manage Student Details ---
+
+exports.getManageStudent = (req, res) => {
+    const studentId = req.params.student_id;
+
+    const queryStudent = `
+        SELECT s.id as student_id, u.id as user_id, u.username as student_code, u.full_name, c.name as classroom_name, s.classroom_id
+        FROM students s
+        JOIN users u ON s.user_id = u.id
+        LEFT JOIN classrooms c ON s.classroom_id = c.id
+        WHERE s.id = ?
+    `;
+
+    db.get(queryStudent, [studentId], (err, student) => {
+        if (err || !student) {
+            console.error(err);
+            return res.status(500).send('Database Error');
+        }
+
+        const queryEnrolled = `
+            SELECT sub.id, sub.code, sub.name, sub.credit 
+            FROM enrollments e 
+            JOIN subjects sub ON e.subject_id = sub.id 
+            WHERE e.student_id = ?
+            ORDER BY sub.code
+        `;
+
+        db.all(queryEnrolled, [studentId], (err, enrolledSubjects) => {
+            if (err) return res.status(500).send('Database Error');
+
+            const queryAvailable = `
+                SELECT id, code, name, credit 
+                FROM subjects 
+                WHERE id NOT IN (SELECT subject_id FROM enrollments WHERE student_id = ?)
+                ORDER BY code
+            `;
+
+            db.all(queryAvailable, [studentId], (err, availableSubjects) => {
+                if (err) return res.status(500).send('Database Error');
+
+                db.all('SELECT id, name FROM classrooms ORDER BY name', (err, classrooms) => {
+                    if (err) return res.status(500).send('Database Error');
+
+                    res.render('executive/manage_student', {
+                        student,
+                        enrolledSubjects,
+                        availableSubjects,
+                        classrooms,
+                        error: req.query.error || null,
+                        success: req.query.success || null
+                    });
+                });
+            });
+        });
+    });
+};
+
+exports.updateStudentClassroom = (req, res) => {
+    const studentId = req.params.student_id;
+    const { classroom_id } = req.body;
+
+    db.run('UPDATE students SET classroom_id = ? WHERE id = ?', [classroom_id, studentId], (err) => {
+        if (err) {
+            console.error(err);
+            return res.redirect(`/executive/students/${studentId}/manage?error=ไม่สามารถอัปเดตห้องเรียนได้`);
+        }
+        res.redirect(`/executive/students/${studentId}/manage?success=อัปเดตห้องเรียนเรียบร้อยแล้ว`);
+    });
+};
+
+exports.addSubjectToStudent = (req, res) => {
+    const studentId = req.params.student_id;
+    const { subject_id } = req.body;
+
+    if (!subject_id) {
+        return res.redirect(`/executive/students/${studentId}/manage?error=กรุณาเลือกรายวิชา`);
+    }
+
+    db.run('INSERT INTO enrollments (student_id, subject_id, grade_midterm, grade_final, total_score, grade_char) VALUES (?, ?, 0, 0, 0, NULL)',
+        [studentId, subject_id], (err) => {
+            if (err) {
+                console.error(err);
+                return res.redirect(`/executive/students/${studentId}/manage?error=ไม่สามารถเพิ่มรายวิชาได้`);
+            }
+            res.redirect(`/executive/students/${studentId}/manage?success=เพิ่มรายวิชาเรียบร้อยแล้ว`);
+        });
+};
+
+exports.removeSubjectFromStudent = (req, res) => {
+    const studentId = req.params.student_id;
+    const { subject_id } = req.body;
+
+    db.run('DELETE FROM enrollments WHERE student_id = ? AND subject_id = ?', [studentId, subject_id], (err) => {
+        if (err) {
+            console.error(err);
+            return res.redirect(`/executive/students/${studentId}/manage?error=ไม่สามารถลบรายวิชาได้`);
+        }
+        res.redirect(`/executive/students/${studentId}/manage?success=ลบรายวิชาเรียบร้อยแล้ว`);
     });
 };
 

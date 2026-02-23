@@ -18,6 +18,72 @@ const getStudentData = (userId) => {
     });
 };
 
+const processGrades = (grades) => {
+    const groupedGrades = {};
+    let totalCredits = 0;
+    let totalPoints = 0;
+
+    grades.forEach(g => {
+        const levelCode = g.code ? g.code.substring(1, 3) : '';
+        let level = 'ม.1';
+        if (levelCode === '21') level = 'ม.1';
+        else if (levelCode === '22') level = 'ม.2';
+        else if (levelCode === '23') level = 'ม.3';
+        else if (levelCode === '31') level = 'ม.4';
+        else if (levelCode === '32') level = 'ม.5';
+        else if (levelCode === '33') level = 'ม.6';
+        g.grade_level = level;
+
+        const lastDigit = g.code ? g.code.slice(-1) : '1';
+        let semester = (parseInt(lastDigit) % 2 === 0) ? '2' : '1';
+        g.semester = semester;
+
+        let points = 0;
+        if (g.grade_char === 'A') points = 4.0;
+        else if (g.grade_char === 'B+') points = 3.5;
+        else if (g.grade_char === 'B') points = 3.0;
+        else if (g.grade_char === 'C+') points = 2.5;
+        else if (g.grade_char === 'C') points = 2.0;
+        else if (g.grade_char === 'D+') points = 1.5;
+        else if (g.grade_char === 'D') points = 1.0;
+        else points = 0;
+
+        totalPoints += points * g.credit;
+        totalCredits += g.credit;
+
+        const groupKey = `${level}-${semester}`;
+        if (!groupedGrades[groupKey]) {
+            groupedGrades[groupKey] = {
+                level: level,
+                semester: semester,
+                grades: [],
+                totalCredits: 0,
+                totalPoints: 0
+            };
+        }
+
+        groupedGrades[groupKey].grades.push(g);
+        groupedGrades[groupKey].totalCredits += g.credit;
+        groupedGrades[groupKey].totalPoints += points * g.credit;
+    });
+
+    const groups = Object.values(groupedGrades).map(group => {
+        group.gpa = group.totalCredits > 0 ? (group.totalPoints / group.totalCredits).toFixed(2) : '0.00';
+        return group;
+    });
+
+    groups.sort((a, b) => {
+        const levelA = parseInt(a.level.replace('ม.', '')) || 0;
+        const levelB = parseInt(b.level.replace('ม.', '')) || 0;
+        if (levelA !== levelB) return levelA - levelB;
+        return parseInt(a.semester) - parseInt(b.semester);
+    });
+
+    const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+
+    return { groups, gpa };
+};
+
 exports.getDashboard = async (req, res) => {
     try {
         const student = await getStudentData(req.session.user.id);
@@ -39,23 +105,8 @@ exports.getGrades = async (req, res) => {
         `, [student.id], (err, grades) => {
             if (err) throw err;
 
-            // Calculate GPA (Simplified for demonstration)
-            let totalCredits = 0;
-            let totalPoints = 0;
-            grades.forEach(g => {
-                let points = 0;
-                if (g.grade_char === 'A') points = 4;
-                else if (g.grade_char === 'B') points = 3;
-                else if (g.grade_char === 'C') points = 2;
-                else if (g.grade_char === 'D') points = 1;
-                else points = 0;
-
-                totalPoints += points * g.credit;
-                totalCredits += g.credit;
-            });
-            const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0.00;
-
-            res.render('student/grades', { student, grades, gpa });
+            const processedData = processGrades(grades);
+            res.render('student/grades', { student, groups: processedData.groups, gpa: processedData.gpa });
         });
     } catch (err) {
         console.error(err);
@@ -118,23 +169,11 @@ exports.downloadTranscript = async (req, res) => {
             });
         });
 
-        let totalCredits = 0;
-        let totalPoints = 0;
-        grades.forEach(g => {
-            let points = 0;
-            if (g.grade_char === 'A') points = 4;
-            else if (g.grade_char === 'B') points = 3;
-            else if (g.grade_char === 'C') points = 2;
-            else if (g.grade_char === 'D') points = 1;
-
-            totalPoints += points * g.credit;
-            totalCredits += g.credit;
-        });
-        const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+        const processedData = processGrades(grades);
 
         // Render template to HTML
         const templatePath = path.join(__dirname, '../../views/student/transcript-pdf.ejs');
-        const html = await ejs.renderFile(templatePath, { student, grades, gpa });
+        const html = await ejs.renderFile(templatePath, { student, groups: processedData.groups, gpa: processedData.gpa });
 
         // Launch puppeteer to generate PDF
         const browser = await puppeteer.launch({ headless: 'new' });

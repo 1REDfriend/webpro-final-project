@@ -1,6 +1,6 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">แผงควบคุมผู้บริหาร (Executive Dashboard)</h2>
+    <h2 class="mb-4">แผงควบคุมผู้บริหาร</h2>
 
     <div class="grid-4 mb-4">
         <div class="card" style="text-align: center; border-top: 4px solid var(--primary);">
@@ -38,25 +38,25 @@
 
     <div class="grid-2">
         <div class="card">
-            <h3>สถิติคำร้อง (Requests)</h3>
+            <h3>สถิติคำร้อง</h3>
             <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
                 <div
                     style="display: flex; justify-content: space-between; padding: 1rem; background: #ffc400; border-radius: 8px;">
-                    <span style="font-weight: bold; color: #ffffff;">รอดำเนินการ (Pending)</span>
+                    <span style="font-weight: bold; color: #ffffff;">รอดำเนินการ</span>
                     <span style="font-weight: bold; font-size: 1.2rem;">
                         <%= stats.requestPendingCount %>
                     </span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; padding: 1rem; background: #0bad31; border-radius: 8px;">
-                    <span style="font-weight: bold; color: #ffffff;">อนุมัติแล้ว (Approved)</span>
+                    <span style="font-weight: bold; color: #ffffff;">อนุมัติแล้ว</span>
                     <span style="font-weight: bold; font-size: 1.2rem;">
                         <%= stats.requestApprovedCount %>
                     </span>
                 </div>
                 <div
                     style="display: flex; justify-content: space-between; padding: 1rem; background: #dd2333; border-radius: 8px;">
-                    <span style="font-weight: bold; color: #ffffff;">ปฏิเสธ (Rejected)</span>
+                    <span style="font-weight: bold; color: #ffffff;">ปฏิเสธ</span>
                     <span style="font-weight: bold; font-size: 1.2rem;">
                         <%= stats.requestRejectedCount %>
                     </span>
@@ -71,7 +71,7 @@
                     <thead>
                         <tr>
                             <th>ห้องเรียน</th>
-                            <th>เกรดเฉลี่ย (GPA)</th>
+                            <th>เกรดเฉลี่ย</th>
                         </tr>
                     </thead>
                     <tbody>

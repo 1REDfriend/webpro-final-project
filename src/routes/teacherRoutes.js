@@ -9,6 +9,7 @@ router.get('/dashboard', teacherController.getDashboard);
 router.post('/subjects', teacherController.addSubject);
 router.post('/homeroom', teacherController.selectHomeroom);
 router.get('/classes', teacherController.getClasses);
+router.get('/student/:id/grades', teacherController.getStudentGrades);
 router.post('/behavior', teacherController.updateBehavior);
 router.post('/grade', teacherController.updateGrade);
 router.get('/requests', teacherController.getRequests);

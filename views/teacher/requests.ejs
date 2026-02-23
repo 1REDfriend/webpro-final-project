@@ -40,8 +40,9 @@
                         <td>
                             <%= req.type %>
                         </td>
-                        <td><span class="badge">
-                                <%= req.status %>
+                        <td><span class="badge badge-<%= req.status %>">
+                                <%= req.status==='Pending' ? 'รอดำเนินการ' : req.status==='Approved' ? 'อนุมัติแล้ว' :
+                                    req.status==='Rejected' ? 'ปฏิเสธ' : req.status %>
                             </span></td>
                     </tr>
                     <% }); %>

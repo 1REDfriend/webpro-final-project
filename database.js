@@ -29,8 +29,13 @@ db.serialize(() => {
     // 2. Classrooms Table
     db.run(`CREATE TABLE IF NOT EXISTS classrooms (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL -- e.g., 'M.1/1'
+        name TEXT UNIQUE NOT NULL, -- e.g., 'M.1/1'
+        homeroom_teacher_id INTEGER
     )`);
+
+    db.run(`ALTER TABLE classrooms ADD COLUMN homeroom_teacher_id INTEGER`, (err) => {
+        // Ignore error if column already exists
+    });
 
     // 3. Students Table
     db.run(`CREATE TABLE IF NOT EXISTS students (

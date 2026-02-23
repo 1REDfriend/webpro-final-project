@@ -10,6 +10,26 @@
 </head>
 
 <body>
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <img class="navbar-logo loading-logo" src="/logo.svg" alt="logo">Student
+        </div>
+    </div>
+    <script>
+        const loadingStartTime = performance.now();
+        window.addEventListener('load', () => {
+            const elapsed = performance.now() - loadingStartTime;
+            const minTime = 1000;
+            const delay = Math.max(0, minTime - elapsed);
+            setTimeout(() => {
+                const loader = document.getElementById('loading-screen');
+                if (loader) {
+                    loader.classList.add('hidden');
+                    setTimeout(() => loader.remove(), 500);
+                }
+            }, delay);
+        });
+    </script>
     <%- include('navbar') %>
 
         <div class="container">

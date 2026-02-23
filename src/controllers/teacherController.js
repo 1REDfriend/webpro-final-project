@@ -11,6 +11,72 @@ const getTeacherData = (userId) => {
     });
 };
 
+const processGrades = (grades) => {
+    const groupedGrades = {};
+    let totalCredits = 0;
+    let totalPoints = 0;
+
+    grades.forEach(g => {
+        const levelCode = g.code ? g.code.substring(1, 3) : '';
+        let level = 'ม.1';
+        if (levelCode === '21') level = 'ม.1';
+        else if (levelCode === '22') level = 'ม.2';
+        else if (levelCode === '23') level = 'ม.3';
+        else if (levelCode === '31') level = 'ม.4';
+        else if (levelCode === '32') level = 'ม.5';
+        else if (levelCode === '33') level = 'ม.6';
+        g.grade_level = level;
+
+        const lastDigit = g.code ? g.code.slice(-1) : '1';
+        let semester = (parseInt(lastDigit) % 2 === 0) ? '2' : '1';
+        g.semester = semester;
+
+        let points = 0;
+        if (g.grade_char === 'A') points = 4.0;
+        else if (g.grade_char === 'B+') points = 3.5;
+        else if (g.grade_char === 'B') points = 3.0;
+        else if (g.grade_char === 'C+') points = 2.5;
+        else if (g.grade_char === 'C') points = 2.0;
+        else if (g.grade_char === 'D+') points = 1.5;
+        else if (g.grade_char === 'D') points = 1.0;
+        else points = 0;
+
+        totalPoints += points * g.credit;
+        totalCredits += g.credit;
+
+        const groupKey = `${level}-${semester}`;
+        if (!groupedGrades[groupKey]) {
+            groupedGrades[groupKey] = {
+                level: level,
+                semester: semester,
+                grades: [],
+                totalCredits: 0,
+                totalPoints: 0
+            };
+        }
+
+        groupedGrades[groupKey].grades.push(g);
+        groupedGrades[groupKey].totalCredits += g.credit;
+        groupedGrades[groupKey].totalPoints += points * g.credit;
+    });
+
+    const groups = Object.values(groupedGrades).map(group => {
+        group.gpa = group.totalCredits > 0 ? (group.totalPoints / group.totalCredits).toFixed(2) : '0.00';
+        return group;
+    });
+
+    groups.sort((a, b) => {
+        const levelA = parseInt(a.level.replace('ม.', '')) || 0;
+        const levelB = parseInt(b.level.replace('ม.', '')) || 0;
+        if (levelA !== levelB) return levelA - levelB;
+        return parseInt(a.semester) - parseInt(b.semester);
+    });
+
+    const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+
+    return { groups, gpa };
+};
+
 exports.getDashboard = async (req, res) => {
     try {
         const teacher = await getTeacherData(req.session.user.id);
@@ -154,4 +220,39 @@ exports.postRequest = (req, res) => {
             if (err) console.error(err);
             res.redirect('/teacher/requests');
         });
+};
+
+exports.getStudentGrades = async (req, res) => {
+    try {
+        const teacher = await getTeacherData(req.session.user.id);
+        const studentId = req.params.id;
+
+        // Fetch student details
+        db.get(`
+            SELECT s.*, c.name as classroom_name, u.full_name as name, u.profile_pic
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            JOIN classrooms c ON s.classroom_id = c.id
+            WHERE s.id = ?
+        `, [studentId], (err, student) => {
+            if (err) throw err;
+            if (!student) return res.status(404).send('Student not found');
+
+            // Fetch student grades
+            db.all(`
+                SELECT e.*, sub.code, sub.name, sub.credit
+                FROM enrollments e
+                JOIN subjects sub ON e.subject_id = sub.id
+                WHERE e.student_id = ?
+            `, [studentId], (err, grades) => {
+                if (err) throw err;
+
+                const processedData = processGrades(grades);
+                res.render('teacher/student_grades', { teacher, student, groups: processedData.groups, gpa: processedData.gpa });
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Database Error');
+    }
 };

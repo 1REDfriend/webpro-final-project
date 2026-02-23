@@ -38,6 +38,7 @@
                     <th>รหัส</th>
                     <th>ชื่อ-นามสกุล</th>
                     <th>คะแนนพฤติกรรม</th>
+                    <th>ผลการเรียน</th>
                     <th>ปรับคะแนน</th>
                 </tr>
             </thead>
@@ -57,6 +58,10 @@
                             <%= s.behavior_score %>
                         </td>
                         <td>
+                            <a href="/teacher/student/<%= s.id %>/grades" class="btn btn-primary"
+                                style="padding: 0.3rem 0.8rem; font-size: 0.9em;">ดูเกรด</a>
+                        </td>
+                        <td>
                             <form action="/teacher/behavior" method="POST"
                                 style="display: flex; gap: 0.5rem; align-items: center;">
                                 <input type="hidden" name="student_id" value="<%= s.id %>">
@@ -73,15 +78,15 @@
     </div>
 
     <div class="card">
-        <h3>ลงคะแนนสอบ (Grades Input)</h3>
+        <h3>ลงคะแนนสอบ</h3>
         <p class="text-muted mb-4">เลือกวิชาและนักเรียนเพื่อบันทึกคะแนน (Demo: กรอก Student ID และ Subject ID)</p>
         <form action="/teacher/grade" method="POST" class="grid-4" style="align-items: end;">
             <div class="form-group" style="margin: 0;">
-                <label>Student ID (DB ID)</label>
+                <label>รหัสนักเรียน</label>
                 <input type="number" name="student_id" class="form-control" placeholder="ID" required>
             </div>
             <div class="form-group" style="margin: 0;">
-                <label>Subject ID (DB ID)</label>
+                <label>รหัสวิชา</label>
                 <input type="number" name="subject_id" class="form-control" placeholder="ID" required>
             </div>
             <div class="form-group" style="margin: 0;">

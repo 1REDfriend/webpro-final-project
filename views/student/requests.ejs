@@ -1,6 +1,6 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">ระบบคำร้อง (Request System)</h2>
+    <h2 class="mb-4">ระบบคำร้อง</h2>
 
     <div class="grid-2">
         <div class="card">
@@ -26,7 +26,8 @@
                             </td>
                             <td>
                                 <span class="badge badge-<%= req.status %>">
-                                    <%= req.status %>
+                                    <%= req.status==='Pending' ? 'รอดำเนินการ' : req.status==='Approved' ? 'อนุมัติแล้ว'
+                                        : req.status==='Rejected' ? 'ปฏิเสธ' : req.status %>
                                 </span>
                             </td>
                         </tr>
@@ -41,7 +42,7 @@
                 <div class="form-group">
                     <label>หัวข้อคำร้อง</label>
                     <select name="topic" class="form-control" required>
-                        <option value="ขอเอกสารรับรอง">ขอเอกสารรับรอง (Transcript)</option>
+                        <option value="ขอเอกสารรับรอง">ขอเอกสารรับรอง</option>
                         <option value="ลาป่วย/ลากิจ">ลาป่วย/ลากิจ</option>
                         <option value="เปลี่ยนลงทะเบียน">คำร้องทั่วไป</option>
                     </select>

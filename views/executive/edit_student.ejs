@@ -1,0 +1,48 @@
+<%- include('../layouts/header') %>
+
+    <div class="card" style="max-width: 600px; margin: 0 auto; margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="margin: 0;">แก้ไขข้อมูลนักเรียน</h2>
+            <a href="/executive/students" class="btn btn-secondary" style="text-decoration: none;">ย้อนกลับ</a>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert alert-danger" style="margin-bottom: 1rem;">
+                <%= error %>
+            </div>
+            <% } %>
+                <% if (success) { %>
+                    <div class="alert alert-success" style="margin-bottom: 1rem;">
+                        <%= success %>
+                    </div>
+                    <% } %>
+
+                        <form action="/executive/students/<%= student.student_id %>/edit" method="POST">
+                            <div class="form-group mb-3">
+                                <label>ชื่อ-นามสกุล</label>
+                                <input type="text" name="full_name" class="form-control" required
+                                    value="<%= student.full_name %>">
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label>รหัสนักเรียน (และใช้เป็น Username)</label>
+                                <input type="text" name="student_code" class="form-control" required
+                                    value="<%= student.student_code %>">
+                                <small class="text-muted">การเปลี่ยนรหัสนักเรียนจะเปลี่ยน Username
+                                    ที่ใช้เข้าสู่ระบบด้วย</small>
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <label>รหัสผ่านใหม่ (เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</label>
+                                <input type="text" name="password" class="form-control" placeholder="รหัสผ่านใหม่">
+                            </div>
+
+                            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                <a href="/executive/students" class="btn btn-secondary"
+                                    style="text-decoration: none;">ยกเลิก</a>
+                                <button type="submit" class="btn btn-primary">บันทึกการเปลี่ยนแปลง</button>
+                            </div>
+                        </form>
+    </div>
+
+    <%- include('../layouts/footer') %>

@@ -1,0 +1,51 @@
+<%- include('../layouts/header') %>
+
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2>แก้ไขข้อมูลบุคลากรครู</h2>
+        </div>
+        <div class="col-auto">
+            <a href="/executive/teachers" class="btn btn-secondary">← กลับไปหน้ารายชื่อครู</a>
+        </div>
+    </div>
+
+    <% if (typeof error !=='undefined' && error) { %>
+        <div class="alert"
+            style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 1rem;">
+            <%= error %>
+        </div>
+        <% } %>
+
+            <% if (typeof success !=='undefined' && success) { %>
+                <div class="alert"
+                    style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 1rem;">
+                    <%= success %>
+                </div>
+                <% } %>
+
+                    <div class="card" style="max-width: 600px; margin: 0 auto;">
+                        <form action="/executive/teachers/<%= teacher.id %>/edit" method="POST">
+                            <div class="form-group mb-3">
+                                <label>ชื่อ-นามสกุล</label>
+                                <input type="text" name="full_name" class="form-control"
+                                    value="<%= teacher.full_name %>" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label>ชื่อผู้ใช้งาน (Username สำหรับเข้าสู่ระบบ)</label>
+                                <input type="text" name="username" class="form-control" value="<%= teacher.username %>"
+                                    required>
+                            </div>
+                            <div class="form-group mb-4">
+                                <label>รหัสผ่านใหม่ <small
+                                        class="text-muted">(กรอกเฉพาะกรณีต้องการเปลี่ยนรหัสผ่าน)</small></label>
+                                <input type="password" name="password" class="form-control"
+                                    placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยน">
+                            </div>
+
+                            <div class="d-flex" style="gap: 10px;">
+                                <button type="submit" class="btn btn-primary" style="flex: 1;">บันทึกข้อมูล</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <%- include('../layouts/footer') %>

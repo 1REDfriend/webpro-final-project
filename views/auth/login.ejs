@@ -2,33 +2,28 @@
 
     <div class="card" style="max-width: 400px; margin: 4rem auto; text-align: center;">
         <h2 class="mb-4">เข้าสู่ระบบ KStudent</h2>
-        <% if (error) { %>
-            <div
-                style="background-color: rgba(255, 0, 0, 0.2); color: #ff6b6b; padding: 0.5rem; margin-bottom: 1rem; border-radius: 8px;">
-                <%= error %>
+
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <input type="text" name="username" class="form-control" required
+                    placeholder="ชื่อผู้ใช้งาน (เช่น std1001)">
             </div>
-            <% } %>
-                <form action="/login" method="POST">
-                    <div class="form-group">
-                        <input type="text" name="username" class="form-control" required
-                            placeholder="ชื่อผู้ใช้งาน (เช่น std1001)">
-                    </div>
-                    <div class="form-group">
-                        <input type="password" name="password" class="form-control" required placeholder="รหัสผ่าน">
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">เข้าสู่ระบบ</button>
-                </form>
+            <div class="form-group">
+                <input type="password" name="password" class="form-control" required placeholder="รหัสผ่าน">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">เข้าสู่ระบบ</button>
+        </form>
 
-                <br>
+        <br>
 
-                <div class="mt-4"
-                    style="font-size: 0.85em; color: var(--text-muted); text-align: left; background: #031122; padding: 1rem; border-radius: 8px;">
-                    <p style="margin: 0; font-weight: bold; color: var(--accent);">Mock Credentials:</p>
-                    <p style="margin: 5px 0;">Student: <code>std1001</code> / <code>password</code></p>
-                    <p style="margin: 5px 0;">Teacher: <code>t_somchai</code> / <code>password</code></p>
-                    <p style="margin: 5px 0;">Staff: <code>staff</code> / <code>staff</code></p>
-                    <p style="margin: 5px 0;">Executive: <code>manager</code> / <code>manager</code></p>
-                </div>
+        <div class="mt-4"
+            style="font-size: 0.85em; color: var(--text-muted); text-align: left; background: #f4f4f5; padding: 1rem; border-radius: 8px;">
+            <p style="margin: 0; font-weight: bold; color: var(--accent);">Mock Credentials:</p>
+            <p style="margin: 5px 0;">Student: <code>s6700045</code> / <code>s6700045</code></p>
+            <p style="margin: 5px 0;">Teacher: <code>t_somchai</code> / <code>password</code></p>
+            <p style="margin: 5px 0;">Staff: <code>staff</code> / <code>staff</code></p>
+            <p style="margin: 5px 0;">Executive: <code>manager</code> / <code>manager</code></p>
+        </div>
     </div>
 
     <%- include('../layouts/footer') %>

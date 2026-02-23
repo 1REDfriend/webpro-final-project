@@ -1,6 +1,6 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">ระบบจัดการคำร้อง (Registrar)</h2>
+    <h2 class="mb-4">ระบบจัดการคำร้อง</h2>
 
     <div class="card">
         <h3>รายการคำร้องทั้งหมด</h3>
@@ -8,7 +8,7 @@
             <thead>
                 <tr>
                     <th>วันที่</th>
-                    <th>ผู้ส่ง (Role)</th>
+                    <th>ผู้ส่ง</th>
                     <th>หัวข้อ</th>
                     <th>รายละเอียด</th>
                     <th>สถานะ</th>
@@ -36,7 +36,8 @@
                         </td>
                         <td>
                             <span class="badge badge-<%= req.status %>">
-                                <%= req.status %>
+                                <%= req.status==='Pending' ? 'รอดำเนินการ' : req.status==='Approved' ? 'อนุมัติแล้ว' :
+                                    req.status==='Rejected' ? 'ปฏิเสธ' : req.status %>
                             </span>
                         </td>
                         <td>

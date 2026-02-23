@@ -1,8 +1,19 @@
 <%- include('../layouts/header') %>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2 class="mb-0" style="margin: 0;">ผลการเรียน</h2>
-        <a href="/student/transcript/download" class="btn btn-secondary">พิมพ์ใบเกรด</a>
+        <h2 class="mb-0" style="margin: 0;">ผลการเรียน - <%= student.name %> (<%= student.student_code %>)</h2>
+        <a href="/teacher/classes" class="btn btn-secondary">กลับหน้ารายชื่อนักเรียน</a>
+    </div>
+
+    <div class="card mb-4">
+        <p><strong>ห้องเรียน:</strong>
+            <%= student.classroom_name %>
+        </p>
+        <p style="margin: 0;"><strong>คะแนนพฤติกรรม:</strong>
+            <span style="font-weight: bold; color: <%= student.behavior_score < 50 ? '#ff6b6b' : '#00b894' %>">
+                <%= student.behavior_score %>
+            </span>
+        </p>
     </div>
 
     <% if (groups && groups.length> 0) { %>

@@ -1,0 +1,110 @@
+<%- include('../layouts/header') %>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>จัดการข้อมูลนักเรียน: <%= student.full_name %> (<%= student.student_code %>)</h2>
+        <a href="/executive/students" class="btn"
+            style="background: #95a5a6; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px;">กลับไปหน้ารายชื่อ</a>
+    </div>
+
+
+
+    <div class="grid-2">
+        <!-- Manage Classroom Form -->
+        <div class="card">
+            <h3>จัดการห้องเรียน</h3>
+            <p>ห้องปัจจุบัน: <strong>
+                    <%= student.classroom_name ? student.classroom_name : 'ยังไม่มีห้องเรียน' %>
+                </strong></p>
+            <form action="/executive/students/<%= student.student_id %>/manage/classroom" method="POST"
+                style="margin-top: 1rem;">
+                <div class="form-group mb-3">
+                    <label>เปลี่ยนแปลงห้องเรียน</label>
+                    <select name="classroom_id" class="form-control" required>
+                        <option value="">-- เลือกห้องเรียน --</option>
+                        <% if (classrooms && classrooms.length> 0) { %>
+                            <% classrooms.forEach(c=> { %>
+                                <option value="<%= c.id %>" <%=student.classroom_id===c.id ? 'selected' : '' %>>
+                                    <%= c.name %>
+                                </option>
+                                <% }); %>
+                                    <% } %>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">บันทึกห้องเรียน</button>
+            </form>
+        </div>
+
+        <!-- Manage Subjects Form (Add Subject) -->
+        <div class="card">
+            <h3>เพิ่มรายวิชาเรียน</h3>
+            <p>คุณสามารถเพิ่มรายวิชาที่นักเรียนยังไม่ได้ลงทะเบียนเรียน</p>
+            <form action="/executive/students/<%= student.student_id %>/manage/subjects/add" method="POST"
+                style="margin-top: 1rem;">
+                <div class="form-group mb-3">
+                    <label>เลือกรายวิชา</label>
+                    <select name="subject_id" class="form-control" required>
+                        <option value="">-- เลือกรายวิชาที่เปิดสอน --</option>
+                        <% if (availableSubjects && availableSubjects.length> 0) { %>
+                            <% availableSubjects.forEach(sub=> { %>
+                                <option value="<%= sub.id %>">
+                                    <%= sub.code %> - <%= sub.name %> (<%= sub.credit %> หน่วยกิต)
+                                </option>
+                                <% }); %>
+                                    <% } else { %>
+                                        <option value="" disabled>ไม่มีรายวิชาให้เพิ่ม (เรียนครบแล้ว)
+                                        </option>
+                                        <% } %>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="background: #27ae60; border: none; width: 100%;"
+                    <%=(!availableSubjects || availableSubjects.length===0) ? 'disabled' : '' %>>เพิ่มรายวิชา</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <h3>รายวิชาที่ลงทะเบียนแล้ว (<%= enrolledSubjects.length %> รายวิชา)</h3>
+        <% if (enrolledSubjects && enrolledSubjects.length> 0) { %>
+            <div style="overflow-x: auto; margin-top: 1rem;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: var(--bg-card); box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);">
+                        <tr>
+                            <th>รหัสวิชา</th>
+                            <th>ชื่อวิชา</th>
+                            <th>หน่วยกิต</th>
+                            <th style="width: 150px; text-align: center;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% enrolledSubjects.forEach(sub=> { %>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td>
+                                    <%= sub.code %>
+                                </td>
+                                <td>
+                                    <%= sub.name %>
+                                </td>
+                                <td>
+                                    <%= sub.credit %>
+                                </td>
+                                <td style="text-align: center;">
+                                    <form action="/executive/students/<%= student.student_id %>/manage/subjects/remove"
+                                        method="POST"
+                                        onsubmit="confirmAction(event, 'ยืนยันการลบรายวิชานี้? เกรดและคะแนนของรายวิชานี้จะถูกลบไปด้วย');"
+                                        style="display:inline;">
+                                        <input type="hidden" name="subject_id" value="<%= sub.id %>">
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                            style="background: #e74c3c; border:none; border-radius:4px; color:white; padding:5px 10px; cursor:pointer;">ถอนรายวิชา</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+                <p class="text-muted mt-4">นักเรียนยังไม่ได้ลงทะเบียนรายวิชาใดๆ</p>
+                <% } %>
+    </div>
+
+    <%- include('../layouts/footer') %>

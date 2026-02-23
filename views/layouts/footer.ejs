@@ -1,5 +1,55 @@
 </div>
 <!-- Footer or Scripts -->
-</body>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function confirmAction(event, message) {
+        event.preventDefault();
+        const form = event.target || event.currentTarget;
+        Swal.fire({
+            title: 'ยืนยันการดำเนินการ',
+            text: message,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+</script>
 
-</html>
+<% if (typeof error !=='undefined' && error && error.length> 0) { %>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: '<%= error %>',
+                confirmButtonColor: '#3085d6'
+            });
+        });
+    </script>
+    <% } %>
+
+        <% if (typeof success !=='undefined' && success && success.length> 0) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ',
+                        text: '<%= success %>',
+                        timer: 3000,
+                        showConfirmButton: true,
+                        confirmButtonColor: '#3085d6'
+                    });
+                });
+            </script>
+            <% } %>
+
+                </body>
+
+                </html>
