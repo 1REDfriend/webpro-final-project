@@ -17,6 +17,81 @@ call :banner
 echo.
 
 :: ============================================================
+::  PRE-CHECK: Verify Node.js is installed
+:: ============================================================
+call :section "PRE-CHECK" "Verifying Node.js Installation"
+
+where node >nul 2>&1
+if !errorlevel! equ 0 (
+    for /f "delims=" %%v in ('node --version 2^>nul') do set NODE_VER=%%v
+    call :ok "Node.js found  (!NODE_VER!)"
+    goto :check_npm
+)
+
+call :warn "Node.js not found. Attempting automatic installation..."
+echo.
+
+:: -- Try winget (Windows 10/11 built-in) --
+where winget >nul 2>&1
+if !errorlevel! equ 0 (
+    call :info "Trying: winget install OpenJS.NodeJS.LTS"
+    winget install --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements --silent
+    if !errorlevel! equ 0 goto :node_installed_restart
+    call :warn "winget install failed. Trying next method..."
+)
+
+:: -- Try Chocolatey --
+where choco >nul 2>&1
+if !errorlevel! equ 0 (
+    call :info "Trying: choco install nodejs-lts"
+    choco install nodejs-lts -y
+    if !errorlevel! equ 0 goto :node_installed_restart
+    call :warn "choco install failed. Trying next method..."
+)
+
+:: -- Last resort: download Node.js MSI via PowerShell --
+call :info "Downloading Node.js LTS installer directly..."
+%PS% "
+$ErrorActionPreference = 'Stop'
+try {
+    $resp = Invoke-RestMethod 'https://nodejs.org/dist/index.json'
+    $lts  = $resp | Where-Object { $_.lts } | Select-Object -First 1
+    $ver  = $lts.version
+    $url  = "https://nodejs.org/dist/$ver/node-$ver-x64.msi"
+    $out  = [System.IO.Path]::Combine($env:TEMP, 'nodejs-lts-installer.msi')
+    Write-Host "  [..] Downloading $url" -ForegroundColor Cyan
+    Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing
+    Write-Host "  [..] Running installer (silent)..." -ForegroundColor Cyan
+    Start-Process msiexec -ArgumentList "/i `"$out`" /qn /norestart ADDLOCAL=ALL" -Wait
+    "SUCCESS"
+} catch {
+    Write-Host "  [XX] Download/install failed: $_" -ForegroundColor Red
+    "FAILED"
+}"
+if !errorlevel! neq 0 goto :node_install_failed
+
+:: Verify node is now available after PowerShell install
+where node >nul 2>&1
+if !errorlevel! neq 0 goto :node_install_failed
+
+:node_installed_restart
+call :ok "Node.js installed successfully!"
+call :info "Refreshing environment and restarting launcher..."
+:: Refresh PATH from registry then relaunch
+for /f "skip=2 tokens=3*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "SYS_PATH=%%A %%B"
+for /f "skip=2 tokens=3*" %%A in ('reg query "HKCU\Environment" /v Path 2^>nul') do set "USR_PATH=%%A %%B"
+set "PATH=!SYS_PATH!;!USR_PATH!"
+echo.
+cmd /k "%~f0"
+exit /b
+
+:node_install_failed
+call :error "Could not install Node.js automatically."
+call :error "Please install manually from: https://nodejs.org"
+goto :done_error
+
+:check_npm
+:: ============================================================
 ::  STEP 1: Check & Install Node Package Manager
 :: ============================================================
 call :section "STEP 1" "Checking Package Manager"
@@ -52,7 +127,7 @@ if !errorlevel! equ 0 (
 )
 
 call :error "No package manager found (npm / yarn / pnpm / bun)."
-call :error "Please install Node.js from https://nodejs.org and re-run."
+call :error "Node.js may not have been installed correctly. Please reinstall from: https://nodejs.org"
 goto :done_error
 
 :: ================================================================
