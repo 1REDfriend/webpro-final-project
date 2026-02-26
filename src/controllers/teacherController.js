@@ -1,4 +1,7 @@
 const db = require('../../database');
+const fs = require('fs');
+const { parse } = require('csv-parse');
+const { stringify } = require('csv-stringify/sync');
 
 const getTeacherData = (userId) => {
     return new Promise((resolve, reject) => {
@@ -89,7 +92,9 @@ exports.getDashboard = async (req, res) => {
                     const room = classrooms.find(c => c.id === teacher.homeroom_classroom_id);
                     homeroom = room ? room.name : null;
                 }
-                res.render('teacher/dashboard', { teacher, subjects, classrooms, homeroom });
+                db.all(`SELECT * FROM announcements WHERE target_audience IN ('both', 'teacher') ORDER BY created_at DESC LIMIT 3`, [], (err, announcements) => {
+                    res.render('teacher/dashboard', { teacher, subjects, classrooms, homeroom, announcements: announcements || [] });
+                });
             });
         });
     } catch (err) {
@@ -160,7 +165,30 @@ exports.getClasses = async (req, res) => {
 
                 db.all(query, params, (err, students) => {
                     if (err) throw err;
-                    res.render('teacher/classes', { teacher, subjects, classrooms, students, filters: { classroom_id, subject_id } });
+
+                    // Fetch all grades for these students to calculate GPA
+                    if (students.length === 0) {
+                        return res.render('teacher/classes', { teacher, subjects, classrooms, students, filters: { classroom_id, subject_id } });
+                    }
+
+                    const studentIds = students.map(s => s.id);
+                    const placeholders = studentIds.map(() => '?').join(',');
+                    db.all(`
+                        SELECT e.*, sub.code, sub.name, sub.credit
+                        FROM enrollments e
+                        JOIN subjects sub ON e.subject_id = sub.id
+                        WHERE e.student_id IN (${placeholders})
+                    `, studentIds, (err, allGrades) => {
+                        if (err) throw err;
+
+                        students.forEach(student => {
+                            const studentGrades = allGrades.filter(g => g.student_id === student.id);
+                            const processedData = processGrades(studentGrades);
+                            student.gpa = processedData.gpa;
+                        });
+
+                        res.render('teacher/classes', { teacher, subjects, classrooms, students, filters: { classroom_id, subject_id } });
+                    });
                 });
             });
         });
@@ -171,10 +199,15 @@ exports.getClasses = async (req, res) => {
 };
 
 exports.updateBehavior = (req, res) => {
-    const { student_id, score_change } = req.body;
-    db.run(`UPDATE students SET behavior_score = behavior_score + ? WHERE id = ?`,
+    const { student_id, score_change, reason } = req.body;
+    db.run(`UPDATE students SET behavior_score = MIN(100, MAX(0, behavior_score + ?)) WHERE id = ?`,
         [score_change, student_id], (err) => {
             if (err) console.error(err);
+            else {
+                // Log the behavior change
+                db.run(`INSERT INTO behavior_logs (student_id, score_change, reason, recorded_by) VALUES (?, ?, ?, ?)`,
+                    [student_id, score_change, reason || 'ไม่ระบุเหตุผล', req.session.user.id]);
+            }
             res.redirect('/teacher/classes');
         });
 };
@@ -206,6 +239,60 @@ exports.updateGrade = (req, res) => {
     });
 };
 
+exports.getSchedule = async (req, res) => {
+    try {
+        const teacher = await getTeacherData(req.session.user.id);
+        // Get all classrooms where this teacher teaches subjects
+        const schedule = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT sch.*, s.code, s.name, c.name as classroom_name, c.id as classroom_id
+                FROM schedules sch
+                JOIN subjects s ON sch.subject_id = s.id
+                JOIN classrooms c ON sch.classroom_id = c.id
+                WHERE s.teacher_id = ?
+                ORDER BY sch.day, sch.time_slot
+            `, [teacher.id], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        // Also get homeroom schedule
+        const homeroomSchedule = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT sch.*, s.code, s.name, c.name as classroom_name, c.id as classroom_id, u.full_name as teacher_name
+                FROM schedules sch
+                JOIN subjects s ON sch.subject_id = s.id
+                JOIN classrooms c ON sch.classroom_id = c.id
+                LEFT JOIN users u ON s.teacher_id = u.id
+                JOIN homeroom_teachers ht ON c.id = ht.classroom_id
+                WHERE ht.teacher_id = ?
+                ORDER BY c.name, sch.day, sch.time_slot
+            `, [teacher.id], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        // Get classrooms the teacher is homeroom for
+        const homeroomClassrooms = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT DISTINCT c.id, c.name FROM classrooms c
+                JOIN homeroom_teachers ht ON c.id = ht.classroom_id
+                WHERE ht.teacher_id = ?
+                ORDER BY c.name
+            `, [teacher.id], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+
+        res.render('teacher/schedule', { teacher, schedule, homeroomSchedule, homeroomClassrooms });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Database Error');
+    }
+};
+
 exports.getRequests = (req, res) => {
     db.all('SELECT * FROM requests WHERE user_id = ? ORDER BY date DESC', [req.session.user.id], (err, requests) => {
         if (err) throw err;
@@ -215,8 +302,9 @@ exports.getRequests = (req, res) => {
 
 exports.postRequest = (req, res) => {
     const { topic, description } = req.body;
-    db.run('INSERT INTO requests (user_id, topic, description) VALUES (?, ?, ?)',
-        [req.session.user.id, topic, description], (err) => {
+    const attachmentUrl = req.file ? 'uploads/' + req.file.filename : null;
+    db.run('INSERT INTO requests (user_id, topic, description, attachment_url) VALUES (?, ?, ?, ?)',
+        [req.session.user.id, topic, description, attachmentUrl], (err) => {
             if (err) console.error(err);
             res.redirect('/teacher/requests');
         });
@@ -251,6 +339,123 @@ exports.getStudentGrades = async (req, res) => {
                 res.render('teacher/student_grades', { teacher, student, groups: processedData.groups, gpa: processedData.gpa });
             });
         });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Database Error');
+    }
+};
+
+exports.downloadGradesCSV = async (req, res) => {
+    try {
+        const { classroom_id, subject_id, semester, academic_year } = req.query;
+        if (!classroom_id || !subject_id) {
+            return res.status(400).send('ต้องการห้องเรียนและวิชาเพื่อส่งออก CSV');
+        }
+
+        let query = `
+            SELECT s.student_code, u.full_name as student_name, 
+                   e.grade_midterm, e.grade_final
+            FROM students s
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.subject_id = ? AND e.semester = ? AND e.academic_year = ?
+            WHERE s.classroom_id = ?
+            ORDER BY s.student_code
+        `;
+        db.all(query, [subject_id, semester || '1', academic_year || '2567', classroom_id], (err, records) => {
+            if (err) throw err;
+            const data = records.map(r => ({
+                'รหัสนักเรียน': r.student_code,
+                'ชื่อ-นามสกุล': r.student_name,
+                'คะแนนสอบกลางภาค': r.grade_midterm || 0,
+                'คะแนนสอบปลายภาค': r.grade_final || 0
+            }));
+            const csvData = stringify(data, { header: true });
+            res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+            res.setHeader('Content-Disposition', 'attachment; filename="grades.csv"');
+            res.send('\uFEFF' + csvData); // Add BOM for excel support
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Database Error');
+    }
+};
+
+exports.uploadGradesCSV = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).send('No file uploaded.');
+        }
+        const { subject_id, semester, academic_year } = req.body;
+        if (!subject_id) {
+            return res.status(400).send('Missing subject details.');
+        }
+
+        const records = [];
+        fs.createReadStream(req.file.path)
+            .pipe(parse({ columns: true, skip_empty_lines: true }))
+            .on('data', (row) => {
+                records.push(row);
+            })
+            .on('end', () => {
+                db.serialize(() => {
+                    db.run("BEGIN TRANSACTION");
+                    let pendingOps = records.length;
+
+                    if (pendingOps === 0) {
+                        db.run("COMMIT");
+                        fs.unlinkSync(req.file.path);
+                        return res.redirect('/teacher/classes');
+                    }
+
+                    records.forEach(r => {
+                        const code = r['รหัสนักเรียน'];
+                        const midterm = parseFloat(r['คะแนนสอบกลางภาค']) || 0;
+                        const final = parseFloat(r['คะแนนสอบปลายภาค']) || 0;
+                        const total = midterm + final;
+                        let grade = 'F';
+                        if (total >= 80) grade = 'A';
+                        else if (total >= 75) grade = 'B+';
+                        else if (total >= 70) grade = 'B';
+                        else if (total >= 65) grade = 'C+';
+                        else if (total >= 60) grade = 'C';
+                        else if (total >= 55) grade = 'D+';
+                        else if (total >= 50) grade = 'D';
+
+                        // Find student ID
+                        db.get(`SELECT id FROM students WHERE student_code = ?`, [code], (err, student) => {
+                            if (!err && student) {
+                                // Insert or replace
+                                db.get('SELECT * FROM enrollments WHERE student_id = ? AND subject_id = ? AND academic_year = ? AND semester = ?',
+                                    [student.id, subject_id, academic_year || '2567', semester || '1'], (err, row) => {
+
+                                        // Record Grade Log
+                                        db.run(`INSERT INTO grade_logs (student_id, subject_id, action, old_grade_midterm, new_grade_midterm, old_grade_final, new_grade_final, academic_year, semester, recorded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                            [student.id, subject_id, row ? 'UPDATE_CSV' : 'INSERT_CSV', row ? row.grade_midterm : null, midterm, row ? row.grade_final : null, final, academic_year || '2567', semester || '1', req.session.user.id]);
+
+                                        if (row) {
+                                            db.run(`UPDATE enrollments SET grade_midterm = ?, grade_final = ?, total_score = ?, grade_char = ?, recorded_by = ?, recorded_at = CURRENT_TIMESTAMP WHERE student_id = ? AND subject_id = ? AND academic_year = ? AND semester = ?`,
+                                                [midterm, final, total, grade, req.session.user.id, student.id, subject_id, academic_year || '2567', semester || '1'], checkComplete);
+                                        } else {
+                                            db.run(`INSERT INTO enrollments (student_id, subject_id, grade_midterm, grade_final, total_score, grade_char, academic_year, semester, recorded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                                [student.id, subject_id, midterm, final, total, grade, academic_year || '2567', semester || '1', req.session.user.id], checkComplete);
+                                        }
+                                    });
+                            } else {
+                                checkComplete();
+                            }
+                        });
+
+                        function checkComplete() {
+                            pendingOps--;
+                            if (pendingOps === 0) {
+                                db.run("COMMIT");
+                                fs.unlinkSync(req.file.path);
+                                res.redirect('/teacher/classes');
+                            }
+                        }
+                    });
+                });
+            });
     } catch (err) {
         console.error(err);
         res.status(500).send('Database Error');

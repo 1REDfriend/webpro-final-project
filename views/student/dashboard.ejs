@@ -6,42 +6,66 @@
         <div class="card">
             <h3>ข้อมูลส่วนตัว</h3>
             <div style="display: flex; gap: 1.5rem; align-items: center;">
-                <% 
-                    let profileImg = '/image/default-profile.png';
-                    if (student.profile_pic && student.profile_pic !== 'default.png') {
-                        profileImg = student.profile_pic.startsWith('http') || student.profile_pic.startsWith('/') 
-                            ? student.profile_pic 
-                            : '/image/' + student.profile_pic;
-                    }
-                %>
-                <img src="<%= profileImg %>" alt="Profile"
-                     style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover; border: 2px solid var(--accent);">
-                <div>
-                    <p style="font-size: 1.2rem; font-weight: bold;">
-                        <%= student.name %>
-                    </p>
-                    <p class="text-muted" style="margin: 0.5rem 0;">รหัสนักเรียน: <%= student.student_code %>
-                    </p>
-                    <p class="text-muted" style="margin: 0.5rem 0;">ชั้นเรียน: <%= student.classroom_name %>
-                    </p>
-                </div>
+                <% let profileImg='/image/default-profile.png' ; if (student.profile_pic && student.profile_pic
+                    !=='default.png' ) { profileImg=student.profile_pic.startsWith('http') ||
+                    student.profile_pic.startsWith('/') ? student.profile_pic : '/image/' + student.profile_pic; } %>
+                    <img src="<%= profileImg %>" alt="Profile"
+                        style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover; border: 2px solid var(--accent);">
+                    <div>
+                        <p style="font-size: 1.2rem; font-weight: bold;">
+                            <%= student.name %>
+                        </p>
+                        <p class="text-muted" style="margin: 0.5rem 0;">รหัสนักเรียน: <%= student.student_code %>
+                        </p>
+                        <p class="text-muted" style="margin: 0.5rem 0;">ชั้นเรียน: <%= student.classroom_name %>
+                        </p>
+                    </div>
             </div>
         </div>
 
         <div class="card" style="text-align: center;">
             <h3>คะแนนความประพฤติ</h3>
-            <div
-                style="font-size: 3.5rem; font-weight: bold; color: <%= student.behavior_score < 50 ? '#ff6b6b' : '#00b894' %>; margin: 1rem 0;">
-                <%= student.behavior_score %>
-            </div>
-            <p class="text-muted">คะแนนเริ่มต้น 100 คะแนน</p>
+            <% const scoreColor=student.behavior_score < 50 ? '#ff6b6b' : '#00b894' ; %>
+                <div style="font-size: 3.5rem; font-weight: bold; color: <%= scoreColor %>; margin: 1rem 0;">
+                    <%= student.behavior_score %>
+                </div>
+                <p class="text-muted">คะแนนเริ่มต้น 100 คะแนน</p>
         </div>
     </div>
 
     <div class="card mt-4">
-        <h3>ประกาศจากโรงเรียน</h3>
-        <p>ยินดีต้อนรับสู่ระบบ KStudent ใหม่! กรุณาตรวจสอบตารางเรียนและผลการเรียนของท่าน
-            หากพบข้อผิดพลาดโปรดแจ้งงานทะเบียน</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">ประกาศจากโรงเรียน</h3>
+            <span style="font-size: 0.85em;" class="text-muted">ล่าสุด 5 รายการ</span>
+        </div>
+        <% if (announcements && announcements.length> 0) { %>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <% announcements.forEach(a=> { %>
+                    <div
+                        style="display: flex; gap: 1rem; padding: 1rem; background: #f8fafc; border-radius: 10px; border-left: 4px solid var(--primary);">
+                        <% if (a.image_url) { %>
+                            <img src="<%= a.image_url %>" alt="announcement"
+                                style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
+                            <% } %>
+                                <div style="flex: 1;">
+                                    <strong style="font-size: 1.05rem;">
+                                        <%= a.title %>
+                                    </strong>
+                                    <p style="margin: 0.25rem 0 0; color: #666; font-size: 0.9em;">
+                                        <%= a.description.substring(0, 120) %>
+                                            <%= a.description.length> 120 ? '...' : '' %>
+                                    </p>
+                                    <small class="text-muted">
+                                        <%= new Date(a.created_at).toLocaleDateString('th-TH', { year: 'numeric' ,
+                                            month: 'long' , day: 'numeric' }) %>
+                                    </small>
+                                </div>
+                    </div>
+                    <% }); %>
+            </div>
+            <% } else { %>
+                <p class="text-muted">ยังไม่มีประกาศในระบบ</p>
+                <% } %>
     </div>
 
     <%- include('../layouts/footer') %>

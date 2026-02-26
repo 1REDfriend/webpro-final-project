@@ -54,7 +54,7 @@
                         <td>
                             <%= s.name %>
                         </td>
-                        <td style="font-weight: bold; color: <%= s.behavior_score < 50 ? '#ff6b6b' : '#00b894' %>">
+                        <td style="font-weight: bold; color: <%= s.behavior_score < 50 ? '#ff6b6b' : '#00b894' %>;">
                             <%= s.behavior_score %>
                         </td>
                         <td>
@@ -63,10 +63,12 @@
                         </td>
                         <td>
                             <form action="/teacher/behavior" method="POST"
-                                style="display: flex; gap: 0.5rem; align-items: center;">
+                                style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                                 <input type="hidden" name="student_id" value="<%= s.id %>">
-                                <input type="number" name="score_change" placeholder="+/-" style="width: 70px;"
+                                <input type="number" name="score_change" placeholder="+/-" style="width: 60px;"
                                     required>
+                                <input type="text" name="reason" placeholder="เหตุผล" style="width: 120px;"
+                                    class="form-control" style="padding: 0.3rem;">
                                 <button type="submit" class="btn btn-secondary"
                                     style="padding: 0.3rem 0.8rem;">บันทึก</button>
                             </form>
@@ -100,6 +102,59 @@
             <button type="submit" class="btn btn-primary"
                 style="grid-column: span 4; margin-top: 1rem;">บันทึกคะแนน</button>
         </form>
+
+        <div class="mt-4" style="border-top: 1px solid #eee; padding-top: 1rem;">
+            <h4>จัดการคะแนนด้วยไฟล์ CSV</h4>
+            <div style="display: flex; gap: 2rem; align-items: flex-start; margin-top: 1rem;">
+
+                <!-- ดาวน์โหลด Template -->
+                <div
+                    style="flex: 1; padding: 1.5rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h5 style="margin-top: 0; color: var(--primary);">1. ดาวน์โหลดไฟล์นักเรียน</h5>
+                    <p class="text-muted" style="font-size: 0.9em;">
+                        เลือกวิชาและห้องเรียนเพื่อดาวน์โหลดรายชื่อนักเรียนในรูปแบบ CSV</p>
+                    <form action="/teacher/grades/export" method="GET"
+                        style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <input type="number" name="subject_id" class="form-control" placeholder="รหัสวิชา (เช่น 1)"
+                            required>
+                        <select name="classroom_id" class="form-control" required>
+                            <option value="">-- เลือกห้องเรียน --</option>
+                            <% classrooms.forEach(c=> { %>
+                                <option value="<%= c.id %>">
+                                    <%= c.name %>
+                                </option>
+                                <% }); %>
+                        </select>
+                        <select name="semester" class="form-control" required>
+                            <option value="1">ภาคเรียนที่ 1</option>
+                            <option value="2">ภาคเรียนที่ 2</option>
+                        </select>
+                        <button type="submit" class="btn btn-secondary" style="margin-top: 0.5rem;">ดาวน์โหลด
+                            CSV</button>
+                    </form>
+                </div>
+
+                <!-- อัปโหลด คะแนน -->
+                <div
+                    style="flex: 1; padding: 1.5rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h5 style="margin-top: 0; color: var(--accent);">2. อัปโหลดคะแนน</h5>
+                    <p class="text-muted" style="font-size: 0.9em;">อัปโหลดไฟล์ CSV
+                        ที่กรอกคะแนนเรียบร้อยแล้วเพื่อบันทึกเข้าระบบ</p>
+                    <form action="/teacher/grades/import" method="POST" enctype="multipart/form-data"
+                        style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <input type="number" name="subject_id" class="form-control" placeholder="รหัสวิชา (เช่น 1)"
+                            required>
+                        <select name="semester" class="form-control" required>
+                            <option value="1">ภาคเรียนที่ 1</option>
+                            <option value="2">ภาคเรียนที่ 2</option>
+                        </select>
+                        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                        <button type="submit" class="btn btn-primary"
+                            style="margin-top: 0.5rem;">อัปโหลดและบันทึกคะแนน</button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <div class="mt-4">
             <h4>รหัสวิชาของท่าน:</h4>

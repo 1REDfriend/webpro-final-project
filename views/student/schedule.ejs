@@ -1,37 +1,24 @@
 <%- include('../layouts/header') %>
 
     <% const daysEn=['Monday', 'Tuesday' , 'Wednesday' , 'Thursday' , 'Friday' ]; const daysTh={ 'Monday' : 'จันทร์'
-        , 'Tuesday' : 'อังคาร' , 'Wednesday' : 'พุธ' , 'Thursday' : 'พฤหัสบดี' , 'Friday' : 'ศุกร์' }; /* Prepare time
-        slots from the database dynamically */ let timeSlots=[]; if (schedule && schedule.length> 0) {
+        , 'Tuesday' : 'อังคาร' , 'Wednesday' : 'พุธ' , 'Thursday' : 'พฤหัสบดี' , 'Friday' : 'ศุกร์' }; let timeSlots=[];
+        if (schedule && schedule.length> 0) {
         timeSlots = Array.from(new Set(schedule.map(s => s.time_slot))).sort();
         } else {
-        /* Default time slots if no schedule */
-        timeSlots = [
-        '08.30-09.20', '09.20-10.10', '10.10-11.00', '11.00-11.50',
-        '11.50-12.40', '12.40-13.30', '13.30-14.20', '14.20-15.10'
-        ];
+        timeSlots = ['08.30-09.20', '09.20-10.10', '10.10-11.00', '11.00-11.50', '11.50-12.40', '12.40-13.30',
+        '13.30-14.20', '14.20-15.10'];
         }
-
-        /* Build schedule matrix scheduleMatrix[day][time_slot] */
         const scheduleMatrix = {};
         daysEn.forEach(day => {
         scheduleMatrix[day] = {};
-        timeSlots.forEach(time => {
-        scheduleMatrix[day][time] = null;
+        timeSlots.forEach(time => { scheduleMatrix[day][time] = null; });
         });
-        });
-
         if (schedule && schedule.length > 0) {
-        schedule.forEach(s => {
-        if (scheduleMatrix[s.day]) {
-        scheduleMatrix[s.day][s.time_slot] = s;
-        }
-        });
+        schedule.forEach(s => { if (scheduleMatrix[s.day]) scheduleMatrix[s.day][s.time_slot] = s; });
         }
         %>
 
         <style>
-            /* Thai School Schedule Design */
             @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
 
             .schedule-container {
@@ -91,7 +78,6 @@
                 color: var(--accent);
             }
 
-            /* Diagonal split header cell */
             .diagonal-header {
                 position: relative;
                 min-width: 130px;
@@ -106,10 +92,6 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-            }
-
-            .diagonal-header svg line {
-                stroke: var(--border);
             }
 
             .diagonal-header .top-right {
@@ -146,7 +128,122 @@
                 font-size: 0.85em;
                 color: var(--text-muted);
             }
+
+            /* Clickable cells */
+            .schedule-cell {
+                cursor: pointer;
+                transition: background 0.2s, transform 0.1s;
+            }
+
+            .schedule-cell:hover {
+                background: rgba(99, 102, 241, 0.08);
+                transform: scale(1.02);
+            }
+
+            /* Modal */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+            .modal-card {
+                background: var(--bg-card);
+                border-radius: 16px;
+                padding: 2rem;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+                animation: modalIn 0.2s ease;
+            }
+
+            @keyframes modalIn {
+                from {
+                    transform: scale(0.9);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+
+            .modal-card h3 {
+                margin-top: 0;
+                color: var(--accent);
+                font-size: 1.3rem;
+            }
+
+            .modal-row {
+                display: flex;
+                gap: 0.75rem;
+                align-items: flex-start;
+                padding: 0.6rem 0;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .modal-row:last-child {
+                border-bottom: none;
+            }
+
+            .modal-row .label {
+                font-weight: 600;
+                min-width: 120px;
+                color: var(--text-muted);
+                font-size: 0.9em;
+            }
+
+            .modal-row .value {
+                color: var(--text-main);
+            }
+
+            .modal-close {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                cursor: pointer;
+                background: none;
+                border: none;
+                color: var(--text-main);
+                font-size: 1.5rem;
+            }
         </style>
+
+        <!-- Detail Modal -->
+        <div class="modal-overlay" id="scheduleModal" onclick="if(event.target===this) closeModal()">
+            <div class="modal-card" style="position: relative;">
+                <button class="modal-close" onclick="closeModal()">✕</button>
+                <h3 id="modal-subject-name">ชื่อวิชา</h3>
+                <div class="modal-row">
+                    <span class="label">รหัสวิชา:</span>
+                    <span class="value" id="modal-code">-</span>
+                </div>
+                <div class="modal-row">
+                    <span class="label">อาจารย์ผู้สอน:</span>
+                    <span class="value" id="modal-teacher">-</span>
+                </div>
+                <div class="modal-row">
+                    <span class="label">วัน-เวลา:</span>
+                    <span class="value" id="modal-time">-</span>
+                </div>
+                <div class="modal-row">
+                    <span class="label">หน่วยกิต:</span>
+                    <span class="value" id="modal-credit">-</span>
+                </div>
+            </div>
+        </div>
 
         <div class="schedule-container">
             <div class="schedule-header">
@@ -189,16 +286,17 @@
                             </th>
                             <% timeSlots.forEach(time=> {
                                 const item = scheduleMatrix[day][time];
-                                if (item) {
-                                %>
-                                <td>
+                                if (item) { %>
+                                <td class="schedule-cell" data-name="<%= item.name || '' %>"
+                                    data-code="<%= item.code || '' %>" data-teacher="<%= item.teacher_name || '-' %>"
+                                    data-time="<%= daysTh[day] %> <%= time %>" data-credit="<%= item.credit || '' %>"
+                                    onclick="openModal(this)">
                                     <div class="cell-subject-code">
                                         <%= item.code %>
                                     </div>
                                     <div class="cell-teacher-name">
                                         <%= item.teacher_name || item.name %>
                                     </div>
-                                    <div class="cell-room">2208</div>
                                 </td>
                                 <% } else { %>
                                     <td></td>
@@ -212,5 +310,21 @@
                 <p class="text-center text-muted mt-4">ยังไม่มีตารางเรียนในระบบ</p>
                 <% } %>
         </div>
+
+        <script>
+            function openModal(el) {
+                const d = el.dataset;
+                document.getElementById('modal-subject-name').textContent = d.name || '-';
+                document.getElementById('modal-code').textContent = d.code || '-';
+                document.getElementById('modal-teacher').textContent = d.teacher || '-';
+                document.getElementById('modal-time').textContent = d.time || '-';
+                document.getElementById('modal-credit').textContent = d.credit ? d.credit + ' หน่วยกิต' : '-';
+                document.getElementById('scheduleModal').classList.add('active');
+            }
+            function closeModal() {
+                document.getElementById('scheduleModal').classList.remove('active');
+            }
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+        </script>
 
         <%- include('../layouts/footer') %>

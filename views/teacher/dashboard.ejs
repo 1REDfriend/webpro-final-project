@@ -4,13 +4,22 @@
 
     <div class="card">
         <h3>ข้อมูลส่วนตัว</h3>
-        <p><strong>ชื่อ-นามสกุล:</strong>
-            <%= teacher.full_name %>
-        </p>
-        <p><strong>สถานะ:</strong> บุคลากรครู</p>
-        <p><strong>ห้องเรียนประจำชั้น:</strong>
-            <%= homeroom ? homeroom : 'ยังไม่ได้ระบุ' %>
-        </p>
+        <div style="display: flex; gap: 1.5rem; align-items: center;">
+            <% let profileImg='/image/default-profile.png' ; if (teacher.profile_pic && teacher.profile_pic
+                !=='default.png' ) { profileImg=teacher.profile_pic.startsWith('http') ||
+                teacher.profile_pic.startsWith('/') ? teacher.profile_pic : '/image/' + teacher.profile_pic; } %>
+                <img src="<%= profileImg %>" alt="Profile"
+                    style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover; border: 2px solid var(--accent);">
+                <div>
+                    <p><strong>ชื่อ-นามสกุล:</strong>
+                        <%= teacher.full_name %>
+                    </p>
+                    <p><strong>สถานะ:</strong> บุคลากรครู</p>
+                    <p><strong>ห้องเรียนประจำชั้น:</strong>
+                        <%= homeroom ? homeroom : 'ยังไม่ได้ระบุ' %>
+                    </p>
+                </div>
+        </div>
 
         <form action="/teacher/homeroom" method="POST"
             style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">

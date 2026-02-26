@@ -8,6 +8,7 @@ const port = 3000;
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(session({
     secret: 'kstudent-secret-key-2024',
     resave: false,

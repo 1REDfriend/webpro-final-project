@@ -120,6 +120,11 @@ exports.getTeachers = (req, res) => {
 exports.addTeacher = (req, res) => {
     const { username, password, full_name } = req.body;
 
+    // Infer gender from Thai name prefix
+    const isFemale = full_name.startsWith('นาง') || full_name.startsWith('น.ส.') || full_name.startsWith('Miss');
+    const gender = isFemale ? 'female' : 'male';
+    const profilePic = isFemale ? 'default-profile-women.png' : 'default-profile-men.png';
+
     // Check if user exists
     db.get('SELECT id FROM users WHERE username = ?', [username], (err, row) => {
         if (err) {
@@ -134,7 +139,7 @@ exports.addTeacher = (req, res) => {
         }
 
         // Insert new teacher
-        db.run('INSERT INTO users (username, password, role, full_name) VALUES (?, ?, "teacher", ?)', [username, password, full_name], function (err) {
+        db.run('INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, "teacher", ?, ?, ?)', [username, password, full_name, profilePic, gender], function (err) {
             if (err) {
                 console.error(err);
                 return res.status(500).send('Database Error');
@@ -148,71 +153,102 @@ exports.addTeacher = (req, res) => {
 
 exports.deleteTeacher = (req, res) => {
     const teacherId = req.body.teacher_id;
-
-    // 1. Unassign subjects from this teacher
     db.run('UPDATE subjects SET teacher_id = NULL WHERE teacher_id = ?', [teacherId], (err) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send('Database Error');
-        }
-
-        // 2. Delete teacher from users table
+        if (err) { console.error(err); return res.status(500).send('Database Error'); }
         db.run('DELETE FROM users WHERE id = ? AND role = "teacher"', [teacherId], (err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send('Database Error');
-            }
+            if (err) { console.error(err); return res.status(500).send('Database Error'); }
             res.redirect('/executive/teachers');
         });
     });
 };
 
+exports.assignSubjectToTeacher = (req, res) => {
+    const teacherId = req.params.id;
+    const { subject_id } = req.body;
+    db.run('UPDATE subjects SET teacher_id = ? WHERE id = ?', [teacherId, subject_id], (err) => {
+        if (err) console.error(err);
+        res.redirect(`/executive/teachers/${teacherId}/edit?success=มอบหมายวิชาเรียบร้อยแล้ว`);
+    });
+};
+
+exports.unassignSubjectFromTeacher = (req, res) => {
+    const teacherId = req.params.id;
+    const { subject_id } = req.body;
+    db.run('UPDATE subjects SET teacher_id = NULL WHERE id = ? AND teacher_id = ?', [subject_id, teacherId], (err) => {
+        if (err) console.error(err);
+        res.redirect(`/executive/teachers/${teacherId}/edit?success=ถอนวิชาเรียบร้อยแล้ว`);
+    });
+};
+
+exports.assignHomeroomToTeacher = (req, res) => {
+    const teacherId = req.params.id;
+    const { classroom_id } = req.body;
+    // Remove any existing homeroom teacher for that classroom first, then assign
+    db.run('DELETE FROM homeroom_teachers WHERE classroom_id = ?', [classroom_id], (err) => {
+        if (err) console.error(err);
+        db.run('INSERT OR REPLACE INTO homeroom_teachers (teacher_id, classroom_id) VALUES (?, ?)', [teacherId, classroom_id], (err) => {
+            if (err) console.error(err);
+            res.redirect(`/executive/teachers/${teacherId}/edit?success=มอบหมายห้องดูแลเรียบร้อยแล้ว`);
+        });
+    });
+};
+
+exports.unassignHomeroomFromTeacher = (req, res) => {
+    const teacherId = req.params.id;
+    const { classroom_id } = req.body;
+    db.run('DELETE FROM homeroom_teachers WHERE teacher_id = ? AND classroom_id = ?', [teacherId, classroom_id], (err) => {
+        if (err) console.error(err);
+        res.redirect(`/executive/teachers/${teacherId}/edit?success=ถอนห้องดูแลเรียบร้อยแล้ว`);
+    });
+};
+
 exports.getEditTeacher = (req, res) => {
     const teacherId = req.params.id;
-    db.get('SELECT id, username, full_name, profile_pic FROM users WHERE id = ? AND role = "teacher"', [teacherId], (err, teacher) => {
-        if (err || !teacher) {
-            console.error(err);
-            return res.status(404).send('Teacher not found or database error');
-        }
-        res.render('executive/edit_teacher', { teacher, error: req.query.error || null, success: req.query.success || null });
+    db.get('SELECT id, username, full_name, profile_pic, gender FROM users WHERE id = ? AND role = "teacher"', [teacherId], (err, teacher) => {
+        if (err || !teacher) return res.status(404).send('Teacher not found');
+        db.all('SELECT id, code, name FROM subjects WHERE teacher_id = ? ORDER BY code', [teacherId], (err, assignedSubjects) => {
+            if (err) assignedSubjects = [];
+            db.all('SELECT id, code, name FROM subjects WHERE (teacher_id IS NULL OR teacher_id != ?) ORDER BY code', [teacherId], (err, unassignedSubjects) => {
+                if (err) unassignedSubjects = [];
+                db.all('SELECT DISTINCT c.id, c.name FROM classrooms c JOIN homeroom_teachers ht ON c.id = ht.classroom_id WHERE ht.teacher_id = ? ORDER BY c.name', [teacherId], (err, homeroomClasses) => {
+                    if (err) homeroomClasses = [];
+                    db.all('SELECT id, name FROM classrooms ORDER BY name', (err, allClassrooms) => {
+                        if (err) allClassrooms = [];
+                        res.render('executive/edit_teacher', { teacher, assignedSubjects, unassignedSubjects, homeroomClasses, allClassrooms, error: req.query.error || null, success: req.query.success || null });
+                    });
+                });
+            });
+        });
     });
 };
 
 exports.updateTeacher = (req, res) => {
     const teacherId = req.params.id;
-    const { username, password, full_name } = req.body;
+    const { username, password, full_name, gender } = req.body;
 
-    // Check if new username belongs to another user
+    // Handle uploaded profile pic or keep existing
+    const profilePic = req.file ? '/uploads/' + req.file.filename
+        : (req.body.clear_pic === '1' ? (gender === 'female' ? 'default-profile-women.png' : 'default-profile-men.png')
+            : req.body.existing_pic);
+
     db.get('SELECT id FROM users WHERE username = ? AND id != ?', [username, teacherId], (err, row) => {
-        if (err) {
-            console.error(err);
-            return res.redirect(`/executive/teachers/${teacherId}/edit?error=Database Error`);
-        }
-        if (row) {
-            return res.redirect(`/executive/teachers/${teacherId}/edit?error=มีชื่อผู้ใช้นี้ในระบบแล้ว`);
-        }
+        if (err) return res.redirect(`/executive/teachers/${teacherId}/edit?error=Database Error`);
+        if (row) return res.redirect(`/executive/teachers/${teacherId}/edit?error=มีชื่อผู้ใช้นี้ในระบบแล้ว`);
 
-        if (password && password.trim() !== '') {
-            // Update with new password
-            db.run('UPDATE users SET username = ?, password = ?, full_name = ? WHERE id = ? AND role = "teacher"',
-                [username, password, full_name, teacherId], (err) => {
-                    if (err) {
-                        console.error(err);
-                        return res.redirect(`/executive/teachers/${teacherId}/edit?error=Database Error`);
-                    }
-                    res.redirect('/executive/teachers?success=อัปเดตข้อมูลครูเรียบร้อยแล้ว');
-                });
-        } else {
-            // Update without changing password
-            db.run('UPDATE users SET username = ?, full_name = ? WHERE id = ? AND role = "teacher"',
-                [username, full_name, teacherId], (err) => {
-                    if (err) {
-                        console.error(err);
-                        return res.redirect(`/executive/teachers/${teacherId}/edit?error=Database Error`);
-                    }
-                    res.redirect('/executive/teachers?success=อัปเดตข้อมูลครูเรียบร้อยแล้ว');
-                });
-        }
+        const updateUser = (cb) => {
+            if (password && password.trim() !== '') {
+                db.run('UPDATE users SET username=?, password=?, full_name=?, gender=?, profile_pic=? WHERE id=? AND role="teacher"',
+                    [username, password, full_name, gender, profilePic, teacherId], cb);
+            } else {
+                db.run('UPDATE users SET username=?, full_name=?, gender=?, profile_pic=? WHERE id=? AND role="teacher"',
+                    [username, full_name, gender, profilePic, teacherId], cb);
+            }
+        };
+
+        updateUser((err) => {
+            if (err) { console.error(err); return res.redirect(`/executive/teachers/${teacherId}/edit?error=Database Error`); }
+            res.redirect(`/executive/teachers/${teacherId}/edit?success=อัปเดตข้อมูลครูเรียบร้อยแล้ว`);
+        });
     });
 };
 
@@ -260,8 +296,13 @@ exports.addStudent = (req, res) => {
         db.serialize(() => {
             db.run('BEGIN TRANSACTION');
 
-            db.run('INSERT INTO users (username, password, role, full_name) VALUES (?, ?, "student", ?)',
-                [student_code, password, full_name],
+            // Infer gender from Thai name prefix
+            const isFemale = full_name.startsWith('นาง') || full_name.startsWith('น.ส.') || full_name.startsWith('Miss') || full_name.startsWith('เด็กหญิง') || full_name.startsWith('ด.ญ.');
+            const gender = isFemale ? 'female' : 'male';
+            const profilePic = isFemale ? 'default-profile-women.png' : 'default-profile-men.png';
+
+            db.run('INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, "student", ?, ?, ?)',
+                [student_code, password, full_name, profilePic, gender],
                 function (err) {
                     if (err) {
                         console.error("Insert user error:", err);
@@ -294,21 +335,69 @@ exports.deleteStudent = (req, res) => {
 
     db.serialize(() => {
         db.run('BEGIN TRANSACTION');
-
-        // 1. Delete from enrollments
         db.run('DELETE FROM enrollments WHERE student_id = ?', [studentId], (err) => {
-            if (err) { console.error("Del enrollments err:", err); db.run('ROLLBACK'); return res.status(500).send('DB Error'); }
-
-            // 2. Delete from students table
+            if (err) { console.error(err); db.run('ROLLBACK'); return res.status(500).send('DB Error'); }
             db.run('DELETE FROM students WHERE id = ?', [studentId], (err) => {
-                if (err) { console.error("Del students err:", err); db.run('ROLLBACK'); return res.status(500).send('DB Error'); }
-
-                // 3. Delete from users table
+                if (err) { console.error(err); db.run('ROLLBACK'); return res.status(500).send('DB Error'); }
                 db.run('DELETE FROM users WHERE id = ? AND role = "student"', [userId], (err) => {
-                    if (err) { console.error("Del users err:", err); db.run('ROLLBACK'); return res.status(500).send('DB Error'); }
-
+                    if (err) { console.error(err); db.run('ROLLBACK'); return res.status(500).send('DB Error'); }
                     db.run('COMMIT');
                     res.redirect('/executive/students');
+                });
+            });
+        });
+    });
+};
+
+exports.getEditStudent = (req, res) => {
+    const studentId = req.params.student_id;
+    db.get(`
+        SELECT s.id as student_id, u.id as user_id, u.username as student_code,
+               u.full_name, u.profile_pic, u.gender, s.classroom_id, c.name as classroom_name
+        FROM students s
+        JOIN users u ON s.user_id = u.id
+        LEFT JOIN classrooms c ON s.classroom_id = c.id
+        WHERE s.id = ?
+    `, [studentId], (err, student) => {
+        if (err || !student) return res.status(404).send('Student not found');
+        db.all('SELECT id, name FROM classrooms ORDER BY name', (err, classrooms) => {
+            if (err) classrooms = [];
+            db.all('SELECT sub.id, sub.code, sub.name, sub.credit FROM enrollments e JOIN subjects sub ON e.subject_id = sub.id WHERE e.student_id = ? ORDER BY sub.code', [studentId], (err, enrolledSubjects) => {
+                if (err) enrolledSubjects = [];
+                res.render('executive/edit_student', { student, classrooms, enrolledSubjects, error: req.query.error || null, success: req.query.success || null });
+            });
+        });
+    });
+};
+
+exports.updateStudent = (req, res) => {
+    const studentId = req.params.student_id;
+    const { full_name, student_code, password, classroom_id, gender } = req.body;
+
+    const profilePic = req.file ? '/uploads/' + req.file.filename
+        : (req.body.clear_pic === '1' ? (gender === 'female' ? 'default-profile-women.png' : 'default-profile-men.png')
+            : req.body.existing_pic);
+
+    // Get user_id for this student
+    db.get('SELECT u.id as user_id FROM students s JOIN users u ON s.user_id = u.id WHERE s.id = ?', [studentId], (err, row) => {
+        if (err || !row) return res.redirect(`/executive/students/${studentId}/edit?error=ไม่พบนักเรียน`);
+        const userId = row.user_id;
+
+        db.serialize(() => {
+            db.run('BEGIN TRANSACTION');
+            const updateUserSql = password && password.trim() !== ''
+                ? 'UPDATE users SET full_name=?, username=?, password=?, gender=?, profile_pic=? WHERE id=?'
+                : 'UPDATE users SET full_name=?, username=?, gender=?, profile_pic=? WHERE id=?';
+            const userParams = password && password.trim() !== ''
+                ? [full_name, student_code, password, gender, profilePic, userId]
+                : [full_name, student_code, gender, profilePic, userId];
+
+            db.run(updateUserSql, userParams, (err) => {
+                if (err) { db.run('ROLLBACK'); return res.redirect(`/executive/students/${studentId}/edit?error=อัปเดตข้อมูลไม่สำเร็จ`); }
+                db.run('UPDATE students SET classroom_id=?, student_code=? WHERE id=?', [classroom_id, student_code, studentId], (err) => {
+                    if (err) { db.run('ROLLBACK'); return res.redirect(`/executive/students/${studentId}/edit?error=อัปเดตห้องเรียนไม่สำเร็จ`); }
+                    db.run('COMMIT');
+                    res.redirect(`/executive/students/${studentId}/edit?success=อัปเดตข้อมูลนักเรียนเรียบร้อยแล้ว`);
                 });
             });
         });
@@ -321,7 +410,8 @@ exports.getManageStudent = (req, res) => {
     const studentId = req.params.student_id;
 
     const queryStudent = `
-        SELECT s.id as student_id, u.id as user_id, u.username as student_code, u.full_name, c.name as classroom_name, s.classroom_id
+        SELECT s.id as student_id, u.id as user_id, u.username as student_code,
+               u.full_name, u.profile_pic, u.gender, s.classroom_id, c.name as classroom_name
         FROM students s
         JOIN users u ON s.user_id = u.id
         LEFT JOIN classrooms c ON s.classroom_id = c.id

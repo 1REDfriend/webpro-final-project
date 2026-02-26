@@ -87,7 +87,10 @@ const processGrades = (grades) => {
 exports.getDashboard = async (req, res) => {
     try {
         const student = await getStudentData(req.session.user.id);
-        res.render('student/dashboard', { student });
+        db.all(`SELECT * FROM announcements WHERE target_audience IN ('both', 'student') ORDER BY created_at DESC LIMIT 5`, [], (err, announcements) => {
+            if (err) announcements = [];
+            res.render('student/dashboard', { student, announcements: announcements || [] });
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('Database Error');
@@ -147,8 +150,9 @@ exports.getRequests = async (req, res) => {
 
 exports.postRequest = (req, res) => {
     const { topic, description } = req.body;
-    db.run('INSERT INTO requests (user_id, topic, description) VALUES (?, ?, ?)',
-        [req.session.user.id, topic, description], (err) => {
+    const attachmentUrl = req.file ? 'uploads/' + req.file.filename : null;
+    db.run('INSERT INTO requests (user_id, topic, description, attachment_url) VALUES (?, ?, ?, ?)',
+        [req.session.user.id, topic, description, attachmentUrl], (err) => {
             if (err) console.error(err);
             res.redirect('/student/requests');
         });

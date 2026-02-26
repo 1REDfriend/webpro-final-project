@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KStudent - SDMS</title>
+    <title>KStudent</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="/logo.svg">
 </head>
 
 <body>
@@ -19,7 +20,7 @@
         const loadingStartTime = performance.now();
         window.addEventListener('load', () => {
             const elapsed = performance.now() - loadingStartTime;
-            const minTime = 1000;
+            const minTime = 300;
             const delay = Math.max(0, minTime - elapsed);
             setTimeout(() => {
                 const loader = document.getElementById('loading-screen');

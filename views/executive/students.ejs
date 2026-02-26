@@ -73,16 +73,23 @@
                                         <%= s.classroom_name %>
                                     </td>
                                     <td>
-                                        <a href="/executive/students/<%= s.student_id %>/manage" class="btn btn-sm"
-                                            style="background: #3498db; border:none; border-radius:4px; color:white; padding:5px 10px; cursor:pointer; text-decoration: none; margin-right: 5px;">จัดการข้อมูล</a>
-                                        <form action="/executive/students/delete" method="POST"
-                                            onsubmit="confirmAction(event, 'ยืนยันการลบนักเรียนคนนี้? การลบจะทำให้ข้อมูลผลการเรียนและคำร้องที่เกี่ยวข้องถูกลบทั้งหมด');"
-                                            style="display:inline;">
-                                            <input type="hidden" name="student_id" value="<%= s.student_id %>">
-                                            <input type="hidden" name="user_id" value="<%= s.user_id %>">
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                style="background: #e74c3c; border:none; border-radius:4px; color:white; padding:5px 10px; cursor:pointer; margin-top: 5px;">ลบ</button>
-                                        </form>
+                                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                            <a href="/executive/students/<%= s.student_id %>/manage"
+                                                title="จัดการข้อมูล"
+                                                style="color: #3498db; transition: transform 0.2s;">
+                                                <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+                                            </a>
+                                            <form action="/executive/students/delete" method="POST"
+                                                onsubmit="confirmAction(event, 'ยืนยันการลบนักเรียนคนนี้? การลบจะทำให้ข้อมูลผลการเรียนและคำร้องที่เกี่ยวข้องถูกลบทั้งหมด');"
+                                                style="margin: 0; padding: 0;">
+                                                <input type="hidden" name="student_id" value="<%= s.student_id %>">
+                                                <input type="hidden" name="user_id" value="<%= s.user_id %>">
+                                                <button type="submit" title="ลบ"
+                                                    style="background: none; border: none; padding: 0; color: #e74c3c; cursor: pointer; transition: transform 0.2s;">
+                                                    <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 <% }); %>

@@ -1,6 +1,21 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">แผงควบคุมผู้บริหาร</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">แผงควบคุมผู้บริหาร</h2>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <% let profileImg='/image/default-profile.png' ; if (user && user.profile_pic && user.profile_pic
+                !=='default.png' ) { profileImg=user.profile_pic.startsWith('http') || user.profile_pic.startsWith('/')
+                ? user.profile_pic : '/image/' + user.profile_pic; } %>
+                <div style="text-align: right;">
+                    <p style="margin: 0; font-weight: bold;">
+                        <%= user ? user.full_name : 'ผู้บริหาร' %>
+                    </p>
+                    <small class="text-muted">ผู้อำนวยการ / ผู้บริหาร</small>
+                </div>
+                <img src="<%= profileImg %>" alt="Profile"
+                    style="border-radius: 50%; width: 50px; height: 50px; object-fit: cover; border: 2px solid var(--primary);">
+        </div>
+    </div>
 
     <div class="grid-4 mb-4">
         <div class="card" style="text-align: center; border-top: 4px solid var(--primary);">

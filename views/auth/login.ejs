@@ -1,28 +1,211 @@
 <%- include('../layouts/header') %>
 
-    <div class="card" style="max-width: 400px; margin: 4rem auto; text-align: center;">
-        <h2 class="mb-4">เข้าสู่ระบบ KStudent</h2>
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-        <form action="/login" method="POST">
-            <div class="form-group">
-                <input type="text" name="username" class="form-control" required
-                    placeholder="ชื่อผู้ใช้งาน (เช่น std1001)">
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                linear-gradient(135deg, rgba(99, 208, 241, 0.5) 0%, rgba(138, 92, 246, 0.493) 100%),
+                url('/image/login-bg.png') center/cover no-repeat;
+            filter: blur(15px);
+            opacity: 0.5;
+            z-index: -1;
+        }
+
+        .login-wrapper {
+            display: flex;
+            min-height: calc(100vh - 200px);
+            /* Adjust based on header/footer */
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-container {
+            display: flex;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+        }
+
+        .login-image-side {
+            flex: 1;
+            background:
+                linear-gradient(135deg, rgba(99, 101, 241, 0.39) 0%, rgba(138, 92, 246, 0.185) 100%),
+                url('/image/school-placeholder.png') center/cover no-repeat;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 3rem;
+            text-align: center;
+        }
+
+
+        .login-image-side h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-image-side p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-form-side {
+            flex: 1;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: white;
+        }
+
+        .login-form-side h2 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            font-weight: 700;
+        }
+
+        .login-form-side .form-control {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1rem 1.2rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .login-form-side .form-control:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+        }
+
+        .login-form-side {
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .login-form-side {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-submit {
+            background: linear-gradient(to right, rgb(62, 98, 173), rgb(90, 136, 236));
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            padding: 1rem;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+            }
+
+            .login-image-side {
+                min-height: 300px;
+                padding: 2rem;
+            }
+
+            .login-form-side {
+                padding: 2rem;
+            }
+        }
+    </style>
+
+    <div class="login-wrapper">
+        <div class="login-container">
+            <!-- Left Side: Image / Branding -->
+            <div class="login-image-side">
+                <h1>KStudent</h1>
+                <p>ระบบสารสนเทศเพื่อการจัดการสถานศึกษาที่ทันสมัยและครบวงจร</p>
             </div>
-            <div class="form-group">
-                <input type="password" name="password" class="form-control" required placeholder="รหัสผ่าน">
+
+            <!-- Right Side: Login Form -->
+            <div class="login-form-side">
+                <h2>เข้าสู่ระบบ</h2>
+
+                <% if (typeof error !=='undefined' && error) { %>
+                    <div
+                        style="background: #fee2e2; color: #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #ef4444;">
+                        <%= error %>
+                    </div>
+                    <% } %>
+
+                        <form action="/login" method="POST">
+                            <div class="form-group mb-4">
+                                <label
+                                    style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">ชื่อผู้ใช้งาน</label>
+                                <input type="text" name="username" class="form-control" required
+                                    placeholder="เช่น std1001 หรือ s6700001">
+                            </div>
+                            <div class="form-group mb-4">
+                                <label
+                                    style="font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block;">รหัสผ่าน</label>
+                                <input type="password" name="password" class="form-control" required
+                                    placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn-submit"
+                                style="width: 100%; margin-top: 1rem;">เข้าสู่ระบบ</button>
+                        </form>
+
+                        <br>
+
+                        <div class="mt-4"
+                            style="font-size: 0.85em; color: var(--text-muted); background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                            <p style="margin: 0 0 10px 0; font-weight: bold; color: var(--primary);">Mock Credentials:
+                            </p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <p style="margin: 0;">Student:<br><code>s6700045</code> / <code>s6700045</code></p>
+                                <p style="margin: 0;">Teacher:<br><code>t_somchai</code> / <code>password</code></p>
+                                <p style="margin: 0;">Staff:<br><code>staff</code> / <code>staff</code></p>
+                                <p style="margin: 0;">Executive:<br><code>manager</code> / <code>manager</code></p>
+                            </div>
+                        </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">เข้าสู่ระบบ</button>
-        </form>
-
-        <br>
-
-        <div class="mt-4"
-            style="font-size: 0.85em; color: var(--text-muted); text-align: left; background: #f4f4f5; padding: 1rem; border-radius: 8px;">
-            <p style="margin: 0; font-weight: bold; color: var(--accent);">Mock Credentials:</p>
-            <p style="margin: 5px 0;">Student: <code>s6700045</code> / <code>s6700045</code></p>
-            <p style="margin: 5px 0;">Teacher: <code>t_somchai</code> / <code>password</code></p>
-            <p style="margin: 5px 0;">Staff: <code>staff</code> / <code>staff</code></p>
-            <p style="margin: 5px 0;">Executive: <code>manager</code> / <code>manager</code></p>
         </div>
     </div>
 

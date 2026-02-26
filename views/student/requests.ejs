@@ -10,6 +10,7 @@
                     <tr>
                         <th>วันที่</th>
                         <th>หัวข้อ</th>
+                        <th>ไฟล์แนบ</th>
                         <th>สถานะ</th>
                     </tr>
                 </thead>
@@ -22,6 +23,17 @@
                             <td>
                                 <%= req.topic %>
                                     <% if(req.reply) { %><br><small class="text-muted">ตอบกลับ: <%= req.reply %></small>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <% if (req.attachment_url) { %>
+                                    <a href="/<%= req.attachment_url %>" target="_blank" title="ดูไฟล์แนบ"
+                                        style="color: var(--primary);">
+                                        <i data-lucide="paperclip" style="width:16px;height:16px;"></i>
+                                        ไฟล์แนบ
+                                    </a>
+                                    <% } else { %>
+                                        <span class="text-muted">-</span>
                                         <% } %>
                             </td>
                             <td>
@@ -38,7 +50,7 @@
 
         <div class="card" style="height: fit-content;">
             <h3>ส่งคำร้องใหม่</h3>
-            <form action="/student/requests" method="POST">
+            <form action="/student/requests" method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label>หัวข้อคำร้อง</label>
                     <select name="topic" class="form-control" required>
@@ -51,6 +63,11 @@
                     <label>รายละเอียด</label>
                     <textarea name="description" class="form-control" rows="5" required
                         placeholder="โปรดระบุรายละเอียดอย่างชัดเจน..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>ไฟล์แนบ (ถ้ามี)</label>
+                    <input type="file" name="attachment" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                    <small class="text-muted">รองรับ PDF, รูปภาพ, Word (.doc, .docx)</small>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">ส่งคำร้อง</button>
             </form>

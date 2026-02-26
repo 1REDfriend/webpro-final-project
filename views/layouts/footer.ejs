@@ -1,7 +1,9 @@
 </div>
 <!-- Footer or Scripts -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    lucide.createIcons();
     function confirmAction(event, message) {
         event.preventDefault();
         const form = event.target || event.currentTarget;

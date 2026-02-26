@@ -1,0 +1,330 @@
+<%- include('../layouts/header') %>
+
+    <% const daysEn=['Monday', 'Tuesday' , 'Wednesday' , 'Thursday' , 'Friday' ]; const daysTh={ 'Monday' : 'จันทร์'
+        , 'Tuesday' : 'อังคาร' , 'Wednesday' : 'พุธ' , 'Thursday' : 'พฤหัสบดี' , 'Friday' : 'ศุกร์' }; %>
+
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+            .schedule-container {
+                font-family: 'Sarabun', sans-serif;
+                background: var(--bg-card);
+                padding: 24px;
+                border-radius: var(--radius);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+                margin-bottom: 24px;
+                color: var(--text-main);
+                overflow-x: auto;
+            }
+
+            .table-schedule {
+                width: 100%;
+                min-width: 700px;
+                border-collapse: collapse;
+                border: 2px solid var(--border);
+            }
+
+            .table-schedule th,
+            .table-schedule td {
+                border: 1px solid var(--border);
+                text-align: center;
+                vertical-align: middle;
+                padding: 8px 6px;
+                font-size: 0.9rem;
+            }
+
+            .table-schedule thead th {
+                font-weight: 600;
+                color: var(--accent);
+                background: rgba(99, 102, 241, 0.06);
+            }
+
+            .table-schedule tbody th {
+                font-weight: 600;
+                width: 80px;
+                color: var(--accent);
+            }
+
+            .schedule-cell {
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+            .schedule-cell:hover {
+                background: rgba(99, 102, 241, 0.1);
+            }
+
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+            .modal-card {
+                background: var(--bg-card);
+                border-radius: 16px;
+                padding: 2rem;
+                max-width: 460px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+                animation: modalIn 0.2s ease;
+                position: relative;
+            }
+
+            @keyframes modalIn {
+                from {
+                    transform: scale(0.9);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+
+            .modal-card h3 {
+                margin-top: 0;
+                color: var(--accent);
+            }
+
+            .modal-row {
+                display: flex;
+                gap: 0.75rem;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .modal-row:last-child {
+                border-bottom: none;
+            }
+
+            .modal-row .label {
+                font-weight: 600;
+                min-width: 110px;
+                color: var(--text-muted);
+                font-size: 0.9em;
+            }
+
+            .modal-close {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                cursor: pointer;
+                background: none;
+                border: none;
+                color: var(--text-main);
+                font-size: 1.5rem;
+            }
+
+            .tab-buttons {
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 1.5rem;
+                flex-wrap: wrap;
+            }
+
+            .tab-btn {
+                padding: 0.5rem 1.25rem;
+                border-radius: 30px;
+                border: 2px solid var(--border);
+                background: none;
+                color: var(--text-main);
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: all 0.2s;
+            }
+
+            .tab-btn.active {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+
+            .classroom-section {
+                display: none;
+            }
+
+            .classroom-section.active {
+                display: block;
+            }
+        </style>
+
+        <!-- Modal -->
+        <div class="modal-overlay" id="scheduleModal" onclick="if(event.target===this) closeModal()">
+            <div class="modal-card">
+                <button class="modal-close" onclick="closeModal()">✕</button>
+                <h3 id="modal-subject-name">ชื่อวิชา</h3>
+                <div class="modal-row"><span class="label">รหัสวิชา:</span><span id="modal-code">-</span></div>
+                <div class="modal-row"><span class="label">ห้องเรียน:</span><span id="modal-classroom">-</span></div>
+                <div class="modal-row"><span class="label">วัน-เวลา:</span><span id="modal-time">-</span></div>
+                <div class="modal-row"><span class="label">อาจารย์:</span><span id="modal-teacher">-</span></div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="margin: 0;">ตารางสอนและตารางเรียนของฉัน</h2>
+        </div>
+
+        <!-- My Teaching Schedule -->
+        <div class="schedule-container">
+            <h3 style="margin-top: 0; color: var(--accent);">ตารางสอนของฉัน</h3>
+            <% if (schedule && schedule.length> 0) { %>
+                <% let timeSlots=Array.from(new Set(schedule.map(s=> s.time_slot))).sort();
+                    const scheduleMatrix = {};
+                    daysEn.forEach(d => { scheduleMatrix[d] = {}; timeSlots.forEach(t => { scheduleMatrix[d][t] = null;
+                    }); });
+                    schedule.forEach(s => { if (scheduleMatrix[s.day]) scheduleMatrix[s.day][s.time_slot] = s; });
+                    %>
+                    <div style="overflow-x: auto;">
+                        <table class="table-schedule">
+                            <thead>
+                                <tr>
+                                    <th>วัน/คาบ</th>
+                                    <% timeSlots.forEach((slot, i)=> { %><th>
+                                            <%= i+1 %><br><small>
+                                                    <%= slot %>
+                                                </small>
+                                        </th>
+                                        <% }); %>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% daysEn.forEach(day=> { %>
+                                    <tr>
+                                        <th>
+                                            <%= daysTh[day] %>
+                                        </th>
+                                        <% timeSlots.forEach(time=> {
+                                            const item = scheduleMatrix[day][time];
+                                            if (item) { %>
+                                            <td class="schedule-cell" data-name="<%= item.name || '' %>"
+                                                data-code="<%= item.code || '' %>"
+                                                data-classroom="<%= item.classroom_name || '' %>"
+                                                data-time="<%= daysTh[day] %> <%= time %>"
+                                                data-teacher="<%= teacher.name || '' %>" onclick="openModal(this)">
+                                                <div style="font-size: 0.85em; font-weight: 600; color: var(--accent);">
+                                                    <%= item.code %>
+                                                </div>
+                                                <div style="font-size: 0.8em;">
+                                                    <%= item.classroom_name %>
+                                                </div>
+                                            </td>
+                                            <% } else { %>
+                                                <td></td>
+                                                <% } }); %>
+                                    </tr>
+                                    <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } else { %>
+                        <p class="text-muted">ยังไม่มีตารางสอนในระบบ</p>
+                        <% } %>
+        </div>
+
+        <!-- Homeroom Class Schedules -->
+        <% if (homeroomClassrooms && homeroomClassrooms.length> 0) { %>
+            <div class="schedule-container">
+                <h3 style="margin-top: 0; color: var(--accent);">ตารางเรียนห้องที่ปรึกษา</h3>
+                <div class="tab-buttons">
+                    <% homeroomClassrooms.forEach((cls, i)=> { %>
+                        <button class="tab-btn <%= i === 0 ? 'active' : '' %>"
+                            onclick="showTab('class-<%= cls.id %>', this)">
+                            <%= cls.name %>
+                        </button>
+                        <% }); %>
+                </div>
+
+                <% homeroomClassrooms.forEach((cls, i)=> {
+                    const classSchedule = homeroomSchedule.filter(s => s.classroom_id === cls.id);
+                    let tsSlots = Array.from(new Set(classSchedule.map(s => s.time_slot))).sort();
+                    if (tsSlots.length === 0) tsSlots = ['08.30-09.20', '09.20-10.10', '10.10-11.00', '11.00-11.50',
+                    '12.40-13.30', '13.30-14.20', '14.20-15.10'];
+                    const mat = {};
+                    daysEn.forEach(d => { mat[d] = {}; tsSlots.forEach(t => mat[d][t] = null); });
+                    classSchedule.forEach(s => { if (mat[s.day]) mat[s.day][s.time_slot] = s; });
+                    %>
+                    <div class="classroom-section <%= i === 0 ? 'active' : '' %>" id="class-<%= cls.id %>">
+                        <div style="overflow-x: auto;">
+                            <table class="table-schedule">
+                                <thead>
+                                    <tr>
+                                        <th>วัน/คาบ</th>
+                                        <% tsSlots.forEach((slot, j)=> { %><th>
+                                                <%= j+1 %><br><small>
+                                                        <%= slot %>
+                                                    </small>
+                                            </th>
+                                            <% }); %>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% daysEn.forEach(day=> { %>
+                                        <tr>
+                                            <th>
+                                                <%= daysTh[day] %>
+                                            </th>
+                                            <% tsSlots.forEach(time=> {
+                                                const item = mat[day][time];
+                                                if (item) { %>
+                                                <td class="schedule-cell" data-name="<%= item.name || '' %>"
+                                                    data-code="<%= item.code || '' %>"
+                                                    data-classroom="<%= cls.name || '' %>"
+                                                    data-time="<%= daysTh[day] %> <%= time %>"
+                                                    data-teacher="<%= item.teacher_name || '' %>"
+                                                    onclick="openModal(this)">
+                                                    <div
+                                                        style="font-size: 0.82em; font-weight: 600; color: var(--accent);">
+                                                        <%= item.code %>
+                                                    </div>
+                                                    <div style="font-size: 0.75em; color: var(--text-muted);">
+                                                        <%= item.teacher_name || '' %>
+                                                    </div>
+                                                </td>
+                                                <% } else { %>
+                                                    <td></td>
+                                                    <% } }); %>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <% }); %>
+            </div>
+            <% } %>
+
+                <script>
+                    function openModal(el) {
+                        const d = el.dataset;
+                        document.getElementById('modal-subject-name').textContent = d.name || '-';
+                        document.getElementById('modal-code').textContent = d.code || '-';
+                        document.getElementById('modal-classroom').textContent = d.classroom || '-';
+                        document.getElementById('modal-time').textContent = d.time || '-';
+                        document.getElementById('modal-teacher').textContent = d.teacher || '-';
+                        document.getElementById('scheduleModal').classList.add('active');
+                    }
+                    function closeModal() { document.getElementById('scheduleModal').classList.remove('active'); }
+                    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+                    function showTab(id, btn) {
+                        document.querySelectorAll('.classroom-section').forEach(el => el.classList.remove('active'));
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        document.getElementById(id).classList.add('active');
+                        btn.classList.add('active');
+                    }
+                </script>
+
+                <%- include('../layouts/footer') %>

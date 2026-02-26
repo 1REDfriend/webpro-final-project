@@ -1,65 +1,265 @@
 <%- include('../layouts/header') %>
 
-    <h2 class="mb-4">ระบบจัดการคำร้อง</h2>
+    <style>
+        .badge-Pending {
+            background: #f39c12;
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.82em;
+        }
 
+        .badge-Approved {
+            background: #27ae60;
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.82em;
+        }
+
+        .badge-Rejected {
+            background: #e74c3c;
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.82em;
+        }
+
+        .announce-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 999;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 60px;
+        }
+
+        .announce-modal-overlay.active {
+            display: flex;
+        }
+
+        .announce-modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 680px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .announce-card {
+            background: rgba(99, 102, 241, 0.06);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .announce-badge {
+            font-size: 0.75em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .badge-student {
+            background: #3498db22;
+            color: #3498db;
+        }
+
+        .badge-teacher {
+            background: #27ae6022;
+            color: #27ae60;
+        }
+
+        .badge-both {
+            background: #9b59b622;
+            color: #9b59b6;
+        }
+    </style>
+
+    <!-- Announcement Modal -->
+    <div class="announce-modal-overlay" id="announceModal" onclick="if(event.target===this) closeAnnounce()">
+        <div class="announce-modal">
+            <button onclick="closeAnnounce()"
+                style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-main);">✕</button>
+            <h3 style="margin-top:0;color:var(--accent);display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="megaphone" style="width:20px;height:20px;"></i> จัดการประกาศโรงเรียน
+            </h3>
+
+            <!-- Create Form -->
+            <form action="/staff/announcements" method="POST" style="margin-bottom:1.5rem;">
+                <div style="display:grid;gap:.75rem;">
+                    <input type="text" name="title" class="form-control" placeholder="หัวข้อประกาศ *" required>
+                    <textarea name="description" class="form-control" rows="3" placeholder="รายละเอียด *" required
+                        style="resize:vertical;"></textarea>
+                    <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+                        <input type="text" name="image_url" class="form-control" placeholder="URL รูปภาพ (ถ้ามี)"
+                            style="flex:1;min-width:180px;">
+                        <select name="target_audience" class="form-control" style="flex:1;min-width:160px;">
+                            <option value="both">แสดงทุกคน</option>
+                            <option value="student">นักเรียน</option>
+                            <option value="teacher">ครู</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">เพิ่มประกาศ</button>
+                </div>
+            </form>
+
+            <!-- Existing Announcements -->
+            <h4 style="margin-bottom:.75rem;border-top:1px solid var(--border);padding-top:1rem;">ประกาศที่มีอยู่ (<%=
+                    announcements ? announcements.length : 0 %>)</h4>
+            <% if (announcements && announcements.length> 0) { %>
+                <% announcements.forEach(a=> { %>
+                    <div class="announce-card">
+                        <div style="flex:1;">
+                            <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem;">
+                                <strong>
+                                    <%= a.title %>
+                                </strong>
+                                <span class="announce-badge badge-<%= a.target_audience %>">
+                                    <%= a.target_audience==='student' ? 'นักเรียน' : a.target_audience==='teacher'
+                                        ? 'ครู' : 'ทุกคน' %>
+                                </span>
+                            </div>
+                            <p style="margin:0;font-size:.88em;color:var(--text-muted);">
+                                <%= a.description || a.description_markdown %>
+                            </p>
+                            <small style="color:var(--text-muted);">
+                                <%= a.creator_name %> · <%= new Date(a.created_at).toLocaleDateString('th-TH') %>
+                            </small>
+                        </div>
+                        <form action="/staff/announcements/delete" method="POST" style="margin:0;"
+                            onsubmit="return confirm('ลบประกาศนี้?')">
+                            <input type="hidden" name="id" value="<%= a.id %>">
+                            <button type="submit"
+                                style="background:none;border:none;color:#e74c3c;cursor:pointer;padding:4px;">
+                                <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
+                            </button>
+                        </form>
+                    </div>
+                    <% }) %>
+                        <% } else { %>
+                            <p style="color:var(--text-muted);text-align:center;">ยังไม่มีประกาศ</p>
+                            <% } %>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;">ระบบจัดการคำร้อง</h2>
+        <div style="display:flex;gap:1rem;align-items:center;">
+            <button onclick="openAnnounce()" class="btn btn-primary" style="display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="megaphone" style="width:18px;height:18px;"></i> จัดการประกาศ
+                <% if (announcements && announcements.length> 0) { %>
+                    <span
+                        style="background:white;color:var(--primary);border-radius:50%;width:20px;height:20px;font-size:.75em;display:flex;align-items:center;justify-content:center;font-weight:bold;">
+                        <%= announcements.length %>
+                    </span>
+                    <% } %>
+            </button>
+            <% let profileImg='/image/default-profile.png' ; if (user && user.profile_pic && user.profile_pic
+                !=='default.png' ) { profileImg=user.profile_pic.startsWith('http') || user.profile_pic.startsWith('/')
+                ? user.profile_pic : '/image/' + user.profile_pic; } %>
+                <div style="text-align:right;">
+                    <p style="margin:0;font-weight:bold;">
+                        <%= user ? user.full_name : 'เจ้าหน้าที่' %>
+                    </p>
+                    <small class="text-muted">ฝ่ายพนักงาน / ธุรการ</small>
+                </div>
+                <img src="<%= profileImg %>" alt="Profile"
+                    style="border-radius:50%;width:50px;height:50px;object-fit:cover;border:2px solid #6c5ce7;">
+        </div>
+    </div>
+
+    <!-- Requests Table -->
     <div class="card">
         <h3>รายการคำร้องทั้งหมด</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>วันที่</th>
-                    <th>ผู้ส่ง</th>
-                    <th>หัวข้อ</th>
-                    <th>รายละเอียด</th>
-                    <th>สถานะ</th>
-                    <th>การจัดการ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% requests.forEach(req=> { %>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
                     <tr>
-                        <td>
-                            <%= new Date(req.date).toLocaleDateString('th-TH') %>
-                        </td>
-                        <td>
-                            <%= req.sender_name %> (<span style="color: var(--accent);">
-                                    <%= req.sender_role %>
-                                </span>)
-                        </td>
-                        <td>
-                            <%= req.topic %>
-                        </td>
-                        <td style="max-width: 300px;">
-                            <%= req.description %>
-                                <% if(req.reply) { %><br><small class="text-muted">ตอบกลับ: <%= req.reply %></small>
-                                    <% } %>
-                        </td>
-                        <td>
-                            <span class="badge badge-<%= req.status %>">
-                                <%= req.status==='Pending' ? 'รอดำเนินการ' : req.status==='Approved' ? 'อนุมัติแล้ว' :
-                                    req.status==='Rejected' ? 'ปฏิเสธ' : req.status %>
-                            </span>
-                        </td>
-                        <td>
-                            <% if (req.status==='Pending' ) { %>
-                                <form action="/staff/request-update" method="POST"
-                                    style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                    <input type="hidden" name="id" value="<%= req.id %>">
-                                    <input type="text" name="reply" placeholder="ระบุเหตุผล/ตอบกลับ"
-                                        class="form-control" style="width: 150px; padding: 0.4rem;">
-                                    <button type="submit" name="status" value="Approved" class="btn btn-success"
-                                        style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">อนุมัติ</button>
-                                    <button type="submit" name="status" value="Rejected" class="btn btn-danger"
-                                        style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">ปฏิเสธ</button>
-                                </form>
-                                <% } else { %>
-                                    <span class="text-muted">-</span>
-                                    <% } %>
-                        </td>
+                        <th>วันที่</th>
+                        <th>ผู้ส่ง</th>
+                        <th>หัวข้อ</th>
+                        <th>รายละเอียด</th>
+                        <th>เอกสารแนบ</th>
+                        <th>สถานะ</th>
+                        <th>การจัดการ</th>
                     </tr>
-                    <% }); %>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <% requests.forEach(req=> { %>
+                        <tr>
+                            <td>
+                                <%= new Date(req.date).toLocaleDateString('th-TH') %>
+                            </td>
+                            <td>
+                                <%= req.sender_name %> (<span style="color:var(--accent);">
+                                        <%= req.sender_role %>
+                                    </span>)
+                            </td>
+                            <td>
+                                <%= req.topic %>
+                            </td>
+                            <td style="max-width:260px;">
+                                <%= req.description %>
+                                    <% if (req.reply) { %><br><small class="text-muted">ตอบกลับ: <%= req.reply %>
+                                                </small>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <% if (req.attachment_url) { %>
+                                    <a href="/<%= req.attachment_url %>" target="_blank"
+                                        style="display:flex;align-items:center;gap:.3rem;color:var(--accent);font-size:.85em;">
+                                        <i data-lucide="paperclip" style="width:15px;height:15px;"></i> ดูเอกสาร
+                                    </a>
+                                    <% } else { %>
+                                        <span style="color:var(--text-muted);font-size:.85em;">-</span>
+                                        <% } %>
+                            </td>
+                            <td>
+                                <span class="badge badge-<%= req.status %>">
+                                    <%= req.status==='Pending' ? 'รอดำเนินการ' : req.status==='Approved' ? 'อนุมัติแล้ว'
+                                        : req.status==='Rejected' ? 'ปฏิเสธ' : req.status %>
+                                </span>
+                            </td>
+                            <td>
+                                <% if (req.status==='Pending' ) { %>
+                                    <form action="/staff/request-update" method="POST"
+                                        style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                                        <input type="hidden" name="id" value="<%= req.id %>">
+                                        <input type="text" name="reply" placeholder="ระบุเหตุผล/ตอบกลับ"
+                                            class="form-control" style="width:150px;padding:.4rem;">
+                                        <button type="submit" name="status" value="Approved" class="btn btn-success"
+                                            style="padding:.3rem .6rem;font-size:.8rem;">อนุมัติ</button>
+                                        <button type="submit" name="status" value="Rejected" class="btn btn-danger"
+                                            style="padding:.3rem .6rem;font-size:.8rem;">ปฏิเสธ</button>
+                                    </form>
+                                    <% } else { %>
+                                        <span class="text-muted">-</span>
+                                        <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <script>
+        function openAnnounce() { document.getElementById('announceModal').classList.add('active'); }
+        function closeAnnounce() { document.getElementById('announceModal').classList.remove('active'); }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAnnounce(); });
+    </script>
 
     <%- include('../layouts/footer') %>

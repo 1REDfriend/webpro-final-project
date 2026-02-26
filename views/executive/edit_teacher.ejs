@@ -1,51 +1,239 @@
 <%- include('../layouts/header') %>
 
-    <div class="row mb-4 align-items-center">
-        <div class="col">
-            <h2>แก้ไขข้อมูลบุคลากรครู</h2>
-        </div>
-        <div class="col-auto">
-            <a href="/executive/teachers" class="btn btn-secondary">← กลับไปหน้ารายชื่อครู</a>
-        </div>
+    <style>
+        .pic-preview {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: .35rem;
+            margin: 0 0 .9rem;
+            color: var(--text-main);
+        }
+
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: .82em;
+            font-weight: 600;
+        }
+
+        .tag-pill form {
+            margin: 0;
+        }
+
+        .tag-pill button {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 0;
+            font-size: .9em;
+            line-height: 1;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;">แก้ไขข้อมูลครู</h2>
+        <a href="/executive/teachers" class="btn btn-secondary">← กลับ</a>
     </div>
 
-    <% if (typeof error !=='undefined' && error) { %>
-        <div class="alert"
-            style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 1rem;">
+    <% if (error) { %>
+        <div class="alert-error">
             <%= error %>
         </div>
         <% } %>
-
-            <% if (typeof success !=='undefined' && success) { %>
-                <div class="alert"
-                    style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 1rem;">
+            <% if (success) { %>
+                <div class="alert-success">
                     <%= success %>
                 </div>
                 <% } %>
 
-                    <div class="card" style="max-width: 600px; margin: 0 auto;">
-                        <form action="/executive/teachers/<%= teacher.id %>/edit" method="POST">
-                            <div class="form-group mb-3">
-                                <label>ชื่อ-นามสกุล</label>
-                                <input type="text" name="full_name" class="form-control"
-                                    value="<%= teacher.full_name %>" required>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; align-items:start;">
+
+                        <!-- ── LEFT: Basic Info Form ── -->
+                        <div style="display:flex;flex-direction:column;gap:1.25rem;">
+                            <div class="card">
+                                <div class="section-title">ข้อมูลส่วนตัว</div>
+                                <form action="/executive/teachers/<%= teacher.id %>/edit" method="POST"
+                                    enctype="multipart/form-data">
+                                    <input type="hidden" name="existing_pic"
+                                        value="<%= teacher.profile_pic || 'default-profile-men.png' %>">
+
+                                    <div style="display:flex;gap:1.2rem;align-items:center;margin-bottom:1rem;">
+                                        <% let picSrc='/image/default-profile-men.png' ; if (teacher.profile_pic &&
+                                            teacher.profile_pic !=='default.png' ) {
+                                            picSrc=teacher.profile_pic.startsWith('http') ||
+                                            teacher.profile_pic.startsWith('/') ? teacher.profile_pic : '/image/' +
+                                            teacher.profile_pic; } %>
+                                            <img src="<%= picSrc %>" class="pic-preview" id="picPreview" alt="Profile">
+                                            <div style="flex:1;">
+                                                <input type="file" name="profile_pic_file" accept="image/*"
+                                                    class="form-control" style="margin-bottom:.4rem;"
+                                                    onchange="document.getElementById('picPreview').src=URL.createObjectURL(this.files[0])">
+                                                <label
+                                                    style="font-size:.8em;color:var(--text-muted);display:flex;align-items:center;gap:.3rem;">
+                                                    <input type="checkbox" name="clear_pic" value="1"> รีเซ็ตเป็น
+                                                    default ตามเพศ
+                                                </label>
+                                            </div>
+                                    </div>
+
+                                    <div class="form-group mb-3">
+                                        <label>ชื่อ-นามสกุล</label>
+                                        <input type="text" name="full_name" class="form-control"
+                                            value="<%= teacher.full_name %>" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label>Username</label>
+                                        <input type="text" name="username" class="form-control"
+                                            value="<%= teacher.username %>" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label>เพศ</label>
+                                        <select name="gender" class="form-control">
+                                            <option value="male" <%=teacher.gender==='male' ?'selected':''%>>ชาย
+                                            </option>
+                                            <option value="female" <%=teacher.gender==='female' ?'selected':''%>>หญิง
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-4">
+                                        <label>รหัสผ่านใหม่ <small
+                                                class="text-muted">(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</small></label>
+                                        <input type="password" name="password" class="form-control"
+                                            placeholder="••••••••">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" style="width:100%;">💾
+                                        บันทึกข้อมูลส่วนตัว</button>
+                                </form>
                             </div>
-                            <div class="form-group mb-3">
-                                <label>ชื่อผู้ใช้งาน (Username สำหรับเข้าสู่ระบบ)</label>
-                                <input type="text" name="username" class="form-control" value="<%= teacher.username %>"
-                                    required>
-                            </div>
-                            <div class="form-group mb-4">
-                                <label>รหัสผ่านใหม่ <small
-                                        class="text-muted">(กรอกเฉพาะกรณีต้องการเปลี่ยนรหัสผ่าน)</small></label>
-                                <input type="password" name="password" class="form-control"
-                                    placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยน">
+                        </div>
+
+                        <!-- ── RIGHT: Subject + Homeroom Management ── -->
+                        <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+                            <!-- Assigned Subjects -->
+                            <div class="card">
+                                <div class="section-title">วิชาที่รับผิดชอบ (<%= assignedSubjects.length %>)</div>
+                                <div
+                                    style="display:flex;flex-wrap:wrap;gap:.4rem;min-height:32px;margin-bottom:.75rem;">
+                                    <% if (assignedSubjects.length> 0) { %>
+                                        <% assignedSubjects.forEach(s=> { %>
+                                            <span class="tag-pill">
+                                                <%= s.code %> - <%= s.name %>
+                                                        <form
+                                                            action="/executive/teachers/<%= teacher.id %>/subjects/unassign"
+                                                            method="POST"
+                                                            onsubmit="return confirm('ถอนวิชา <%= s.code %> จากครูท่านนี้?')">
+                                                            <input type="hidden" name="subject_id" value="<%= s.id %>">
+                                                            <button type="submit" title="ถอน">✕</button>
+                                                        </form>
+                                            </span>
+                                            <% }) %>
+                                                <% } else { %>
+                                                    <p style="color:var(--text-muted);font-size:.85em;margin:0;">
+                                                        ยังไม่มีวิชาที่รับผิดชอบ</p>
+                                                    <% } %>
+                                </div>
+
+                                <!-- Add subject -->
+                                <% if (unassignedSubjects.length> 0) { %>
+                                    <form action="/executive/teachers/<%= teacher.id %>/subjects/assign" method="POST"
+                                        style="display:flex;gap:.5rem;">
+                                        <select name="subject_id" class="form-control" required style="flex:1;">
+                                            <option value="">-- เลือกวิชาที่จะมอบหมาย --</option>
+                                            <% unassignedSubjects.forEach(s=> { %>
+                                                <option value="<%= s.id %>">
+                                                    <%= s.code %> - <%= s.name %>
+                                                </option>
+                                                <% }) %>
+                                        </select>
+                                        <button type="submit" class="btn btn-primary"
+                                            style="white-space:nowrap;padding:.45rem .9rem;">+ มอบหมาย</button>
+                                    </form>
+                                    <% } else { %>
+                                        <p style="color:var(--text-muted);font-size:.82em;margin:0;">
+                                            ไม่มีวิชาที่ยังไม่ได้มอบหมายเหลืออยู่</p>
+                                        <% } %>
                             </div>
 
-                            <div class="d-flex" style="gap: 10px;">
-                                <button type="submit" class="btn btn-primary" style="flex: 1;">บันทึกข้อมูล</button>
+                            <!-- Homeroom Classes -->
+                            <div class="card">
+                                <div class="section-title">ห้องที่ดูแล (Homeroom) (<%= homeroomClasses.length %>)</div>
+                                <div
+                                    style="display:flex;flex-wrap:wrap;gap:.4rem;min-height:32px;margin-bottom:.75rem;">
+                                    <% if (homeroomClasses.length> 0) { %>
+                                        <% homeroomClasses.forEach(c=> { %>
+                                            <span class="tag-pill">
+                                                <%= c.name %>
+                                                    <form
+                                                        action="/executive/teachers/<%= teacher.id %>/homeroom/unassign"
+                                                        method="POST"
+                                                        onsubmit="return confirm('ถอนห้อง <%= c.name %> ออกจากครูท่านนี้?')">
+                                                        <input type="hidden" name="classroom_id" value="<%= c.id %>">
+                                                        <button type="submit" title="ถอน">✕</button>
+                                                    </form>
+                                            </span>
+                                            <% }) %>
+                                                <% } else { %>
+                                                    <p style="color:var(--text-muted);font-size:.85em;margin:0;">
+                                                        ยังไม่ได้เป็นที่ปรึกษาห้องใด</p>
+                                                    <% } %>
+                                </div>
+
+                                <!-- Assign homeroom -->
+                                <% const assignedIds=homeroomClasses.map(c=> c.id);
+                                    const availableRooms = allClassrooms.filter(c => !assignedIds.includes(c.id));
+                                    %>
+                                    <% if (availableRooms.length> 0) { %>
+                                        <form action="/executive/teachers/<%= teacher.id %>/homeroom/assign"
+                                            method="POST" style="display:flex;gap:.5rem;">
+                                            <select name="classroom_id" class="form-control" required style="flex:1;">
+                                                <option value="">-- เลือกห้องที่จะมอบหมาย --</option>
+                                                <% availableRooms.forEach(c=> { %>
+                                                    <option value="<%= c.id %>">
+                                                        <%= c.name %>
+                                                    </option>
+                                                    <% }) %>
+                                            </select>
+                                            <button type="submit" class="btn btn-primary"
+                                                style="white-space:nowrap;padding:.45rem .9rem;">+ มอบหมาย</button>
+                                        </form>
+                                        <% } else { %>
+                                            <p style="color:var(--text-muted);font-size:.82em;margin:0;">
+                                                ครูท่านนี้ดูแลทุกห้องแล้ว</p>
+                                            <% } %>
                             </div>
-                        </form>
+                        </div>
                     </div>
 
                     <%- include('../layouts/footer') %>

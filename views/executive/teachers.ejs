@@ -55,15 +55,21 @@
                                         <%= t.username %>
                                     </td>
                                     <td>
-                                        <a href="/executive/teachers/<%= t.id %>/edit" class="btn btn-warning btn-sm"
-                                            style="background: #f1c40f; border:none; border-radius:4px; color:white; padding:5px 10px; text-decoration: none;">แก้ไข</a>
-                                        <form action="/executive/teachers/delete" method="POST"
-                                            onsubmit="confirmAction(event, 'ยืนยันการลบครูท่านนี้? หากลบแล้วจะทำให้รายวิชาที่ครูท่านนี้รับผิดชอบอยู่ไม่มีผู้สอน');"
-                                            style="display:inline;">
-                                            <input type="hidden" name="teacher_id" value="<%= t.id %>">
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                style="background: #e74c3c; border:none; border-radius:4px; color:white; padding:5px 10px; cursor:pointer;">ลบ</button>
-                                        </form>
+                                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                            <a href="/executive/teachers/<%= t.id %>/edit" title="แก้ไข"
+                                                style="color: #f39c12; transition: transform 0.2s;">
+                                                <i data-lucide="pencil" style="width: 20px; height: 20px;"></i>
+                                            </a>
+                                            <form action="/executive/teachers/delete" method="POST"
+                                                onsubmit="confirmAction(event, 'ยืนยันการลบครูท่านนี้? หากลบแล้วจะทำให้รายวิชาที่ครูท่านนี้รับผิดชอบอยู่ไม่มีผู้สอน');"
+                                                style="margin: 0; padding: 0;">
+                                                <input type="hidden" name="teacher_id" value="<%= t.id %>">
+                                                <button type="submit" title="ลบ"
+                                                    style="background: none; border: none; padding: 0; color: #e74c3c; cursor: pointer; transition: transform 0.2s;">
+                                                    <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 <% }); %>

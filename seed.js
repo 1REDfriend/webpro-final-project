@@ -15,9 +15,13 @@ async function seed() {
     // Clear existing data
     await run("DELETE FROM schedules");
     await run("DELETE FROM requests");
+    await run("DELETE FROM announcements");
+    await run("DELETE FROM behavior_logs");
+    await run("DELETE FROM grade_logs");
     await run("DELETE FROM enrollments");
     await run("DELETE FROM subjects");
     await run("DELETE FROM students");
+    await run("DELETE FROM homeroom_teachers");
     await run("DELETE FROM classrooms");
     await run("DELETE FROM users");
 
@@ -45,8 +49,8 @@ async function seed() {
     const classroomLevels = {};
 
     // 2. Create Staff & Executive
-    await run("INSERT INTO users (username, password, role, full_name) VALUES (?, ?, ?, ?)", ['staff', 'staff', 'staff', 'นางสาวใจดี ทะเบียนงาน']);
-    await run("INSERT INTO users (username, password, role, full_name) VALUES (?, ?, ?, ?)", ['manager', 'manager', 'executive', 'นายสมเกียรติ ยุติธรรม (ผู้อำนวยการ)']);
+    await run("INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, ?, ?, ?, ?)", ['staff', 'staff', 'staff', 'นางสาวใจดี ทะเบียนงาน', 'default-profile-women.png', 'female']);
+    await run("INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, ?, ?, ?, ?)", ['manager', 'manager', 'executive', 'นายสมเกียรติ ยุติธรรม (ผู้อำนวยการ)', 'default-profile-men.png', 'male']);
     console.log('สร้างข้อมูลเจ้าหน้าที่และผู้บริหารสำเร็จ');
 
     // 3. Create Teachers
@@ -110,21 +114,39 @@ async function seed() {
     ];
     const teacherIds = [];
     for (const t of teachers) {
-        const res = await run("INSERT INTO users (username, password, role, full_name) VALUES (?, ?, ?, ?)", [t.username, 'password', 'teacher', t.name]);
+        const isFemale = t.name.startsWith('นาง');
+        const gender = isFemale ? 'female' : 'male';
+        const profilePic = isFemale ? 'default-profile-women.png' : 'default-profile-men.png';
+        const res = await run("INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, ?, ?, ?, ?)", [t.username, 'password', 'teacher', t.name, profilePic, gender]);
         teacherIds.push(res.lastID);
     }
     console.log('สร้างข้อมูลครูสำเร็จ');
 
-    const homeroomTeachers = [...teacherIds].sort(() => 0.5 - Math.random());
+    const teacherClassCount = {};
+    teacherIds.forEach(id => teacherClassCount[id] = 0);
 
     for (let i = 0; i < classrooms.length; i++) {
-        // เพิ่ม homeroom_teacher_id ในการ INSERT
-        const res = await run("INSERT INTO classrooms (name, homeroom_teacher_id) VALUES (?, ?)", [classrooms[i], homeroomTeachers[i]]);
-        classIds.push(res.lastID);
+        // Create classroom
+        const res = await run("INSERT INTO classrooms (name) VALUES (?)", [classrooms[i]]);
+        const classId = res.lastID;
+        classIds.push(classId);
+
+        // Assign exactly 2 unique teachers to this classroom
+        let assignedTeachers = [];
+        let attempts = 0;
+        while (assignedTeachers.length < 2 && attempts < 200) {
+            const tId = teacherIds[Math.floor(Math.random() * teacherIds.length)];
+            if (teacherClassCount[tId] < 3 && !assignedTeachers.includes(tId)) {
+                await run("INSERT INTO homeroom_teachers (teacher_id, classroom_id) VALUES (?, ?)", [tId, classId]);
+                teacherClassCount[tId]++;
+                assignedTeachers.push(tId);
+            }
+            attempts++;
+        }
 
         const cName = classrooms[i];
         const match = cName.match(/ม\.(\d+)/);
-        classroomLevels[res.lastID] = match ? parseInt(match[1]) : 1;
+        classroomLevels[classId] = match ? parseInt(match[1]) : 1;
     }
 
     // 4. Create Subjects
@@ -351,8 +373,12 @@ async function seed() {
         const prefix = (i % 2 === 0) ? 'นางสาว' : 'นาย';
         const fullName = `${prefix}${fname} ${lname}`;
 
+        const isFemale = prefix === 'นางสาว';
+        const gender = isFemale ? 'female' : 'male';
+        const profilePic = isFemale ? 'default-profile-women.png' : 'default-profile-men.png';
+
         // User
-        const userRes = await run("INSERT INTO users (username, password, role, full_name) VALUES (?, ?, ?, ?)", [username, password, 'student', fullName]);
+        const userRes = await run("INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, ?, ?, ?, ?)", [username, password, 'student', fullName, profilePic, gender]);
 
         // Student Record
         const stdRes = await run("INSERT INTO students (user_id, classroom_id, student_code) VALUES (?, ?, ?)", [userRes.lastID, classId, studentCode]);
@@ -382,8 +408,8 @@ async function seed() {
             else if (total >= 50) grade = 'D';
             else grade = 'F';
 
-            await run("INSERT INTO enrollments (student_id, subject_id, grade_midterm, grade_final, total_score, grade_char) VALUES (?, ?, ?, ?, ?, ?)",
-                [studentId, subjId, mid, fin, total, grade]);
+            await run("INSERT INTO enrollments (student_id, subject_id, grade_midterm, grade_final, total_score, grade_char, academic_year, semester, recorded_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [studentId, subjId, mid, fin, total, grade, '2567', '1', 1]);
         };
 
         const studentLevel = classroomLevels[classId];

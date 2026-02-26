@@ -1,110 +1,207 @@
 <%- include('../layouts/header') %>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2>จัดการข้อมูลนักเรียน: <%= student.full_name %> (<%= student.student_code %>)</h2>
-        <a href="/executive/students" class="btn"
-            style="background: #95a5a6; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px;">กลับไปหน้ารายชื่อ</a>
+    <style>
+        .pic-preview {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: .35rem;
+            margin: 0 0 .9rem;
+            color: var(--text-main);
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h2 style="margin:0;">จัดการข้อมูลนักเรียน: <%= student.full_name %> (<%= student.student_code %>)</h2>
+        <a href="/executive/students" class="btn btn-secondary">← กลับ</a>
     </div>
 
-
-
-    <div class="grid-2">
-        <!-- Manage Classroom Form -->
-        <div class="card">
-            <h3>จัดการห้องเรียน</h3>
-            <p>ห้องปัจจุบัน: <strong>
-                    <%= student.classroom_name ? student.classroom_name : 'ยังไม่มีห้องเรียน' %>
-                </strong></p>
-            <form action="/executive/students/<%= student.student_id %>/manage/classroom" method="POST"
-                style="margin-top: 1rem;">
-                <div class="form-group mb-3">
-                    <label>เปลี่ยนแปลงห้องเรียน</label>
-                    <select name="classroom_id" class="form-control" required>
-                        <option value="">-- เลือกห้องเรียน --</option>
-                        <% if (classrooms && classrooms.length> 0) { %>
-                            <% classrooms.forEach(c=> { %>
-                                <option value="<%= c.id %>" <%=student.classroom_id===c.id ? 'selected' : '' %>>
-                                    <%= c.name %>
-                                </option>
-                                <% }); %>
-                                    <% } %>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">บันทึกห้องเรียน</button>
-            </form>
+    <% if (error) { %>
+        <div class="alert-error">
+            <%= error %>
         </div>
-
-        <!-- Manage Subjects Form (Add Subject) -->
-        <div class="card">
-            <h3>เพิ่มรายวิชาเรียน</h3>
-            <p>คุณสามารถเพิ่มรายวิชาที่นักเรียนยังไม่ได้ลงทะเบียนเรียน</p>
-            <form action="/executive/students/<%= student.student_id %>/manage/subjects/add" method="POST"
-                style="margin-top: 1rem;">
-                <div class="form-group mb-3">
-                    <label>เลือกรายวิชา</label>
-                    <select name="subject_id" class="form-control" required>
-                        <option value="">-- เลือกรายวิชาที่เปิดสอน --</option>
-                        <% if (availableSubjects && availableSubjects.length> 0) { %>
-                            <% availableSubjects.forEach(sub=> { %>
-                                <option value="<%= sub.id %>">
-                                    <%= sub.code %> - <%= sub.name %> (<%= sub.credit %> หน่วยกิต)
-                                </option>
-                                <% }); %>
-                                    <% } else { %>
-                                        <option value="" disabled>ไม่มีรายวิชาให้เพิ่ม (เรียนครบแล้ว)
-                                        </option>
-                                        <% } %>
-                    </select>
+        <% } %>
+            <% if (success) { %>
+                <div class="alert-success">
+                    <%= success %>
                 </div>
-                <button type="submit" class="btn btn-primary" style="background: #27ae60; border: none; width: 100%;"
-                    <%=(!availableSubjects || availableSubjects.length===0) ? 'disabled' : '' %>>เพิ่มรายวิชา</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="card mt-4">
-        <h3>รายวิชาที่ลงทะเบียนแล้ว (<%= enrolledSubjects.length %> รายวิชา)</h3>
-        <% if (enrolledSubjects && enrolledSubjects.length> 0) { %>
-            <div style="overflow-x: auto; margin-top: 1rem;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead style="background: var(--bg-card); box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);">
-                        <tr>
-                            <th>รหัสวิชา</th>
-                            <th>ชื่อวิชา</th>
-                            <th>หน่วยกิต</th>
-                            <th style="width: 150px; text-align: center;">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% enrolledSubjects.forEach(sub=> { %>
-                            <tr style="border-bottom: 1px solid #eee;">
-                                <td>
-                                    <%= sub.code %>
-                                </td>
-                                <td>
-                                    <%= sub.name %>
-                                </td>
-                                <td>
-                                    <%= sub.credit %>
-                                </td>
-                                <td style="text-align: center;">
-                                    <form action="/executive/students/<%= student.student_id %>/manage/subjects/remove"
-                                        method="POST"
-                                        onsubmit="confirmAction(event, 'ยืนยันการลบรายวิชานี้? เกรดและคะแนนของรายวิชานี้จะถูกลบไปด้วย');"
-                                        style="display:inline;">
-                                        <input type="hidden" name="subject_id" value="<%= sub.id %>">
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                            style="background: #e74c3c; border:none; border-radius:4px; color:white; padding:5px 10px; cursor:pointer;">ถอนรายวิชา</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <% }); %>
-                    </tbody>
-                </table>
-            </div>
-            <% } else { %>
-                <p class="text-muted mt-4">นักเรียนยังไม่ได้ลงทะเบียนรายวิชาใดๆ</p>
                 <% } %>
-    </div>
 
-    <%- include('../layouts/footer') %>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;align-items:start;">
+
+                        <!-- ── LEFT: Profile Edit Form ── -->
+                        <div class="card">
+                            <div class="section-title">แก้ไขข้อมูลส่วนตัว</div>
+                            <form action="/executive/students/<%= student.student_id %>/edit" method="POST"
+                                enctype="multipart/form-data">
+                                <input type="hidden" name="existing_pic"
+                                    value="<%= student.profile_pic || 'default-profile-men.png' %>">
+
+                                <div style="display:flex;gap:1.2rem;align-items:center;margin-bottom:1rem;">
+                                    <% let picSrc='/image/default-profile-men.png' ; if (student.profile_pic &&
+                                        student.profile_pic !=='default.png' ) {
+                                        picSrc=student.profile_pic.startsWith('http') ||
+                                        student.profile_pic.startsWith('/') ? student.profile_pic : '/image/' +
+                                        student.profile_pic; } %>
+                                        <img src="<%= picSrc %>" class="pic-preview" id="picPreview" alt="Profile">
+                                        <div style="flex:1;">
+                                            <input type="file" name="profile_pic_file" accept="image/*"
+                                                class="form-control" style="margin-bottom:.4rem;"
+                                                onchange="document.getElementById('picPreview').src=URL.createObjectURL(this.files[0])">
+                                            <label
+                                                style="font-size:.8em;color:var(--text-muted);display:flex;align-items:center;gap:.3rem;">
+                                                <input type="checkbox" name="clear_pic" value="1"> รีเซ็ตเป็น default
+                                                ตามเพศ
+                                            </label>
+                                        </div>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label>ชื่อ-นามสกุล</label>
+                                    <input type="text" name="full_name" class="form-control"
+                                        value="<%= student.full_name %>" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>รหัสนักเรียน (= Username)</label>
+                                    <input type="text" name="student_code" class="form-control"
+                                        value="<%= student.student_code %>" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>เพศ</label>
+                                    <select name="gender" class="form-control">
+                                        <option value="male" <%=student.gender==='male' ?'selected':''%>>ชาย</option>
+                                        <option value="female" <%=student.gender==='female' ?'selected':''%>>หญิง
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>ห้องเรียน</label>
+                                    <select name="classroom_id" class="form-control" required>
+                                        <% classrooms.forEach(c=> { %>
+                                            <option value="<%= c.id %>" <%=student.classroom_id===c.id?'selected':''%>>
+                                                <%= c.name %>
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label>รหัสผ่านใหม่ <small
+                                            class="text-muted">(เว้นว่างถ้าไม่ต้องการเปลี่ยน)</small></label>
+                                    <input type="password" name="password" class="form-control" placeholder="••••••••">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%;">💾
+                                    บันทึกข้อมูลส่วนตัว</button>
+                            </form>
+                        </div>
+
+                        <!-- ── RIGHT: Subject Management ── -->
+                        <div class="card">
+                            <div class="section-title">จัดการรายวิชาที่ลงทะเบียน (<%= enrolledSubjects.length %>)</div>
+
+                            <!-- Enrolled list with remove button -->
+                            <% if (enrolledSubjects.length> 0) { %>
+                                <div style="overflow-x:auto;margin-bottom:1rem;">
+                                    <table style="width:100%;border-collapse:collapse;font-size:.9em;">
+                                        <thead>
+                                            <tr>
+                                                <th
+                                                    style="text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--border);">
+                                                    รหัส</th>
+                                                <th
+                                                    style="text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--border);">
+                                                    ชื่อวิชา</th>
+                                                <th
+                                                    style="text-align:center;padding:.4rem .5rem;border-bottom:1px solid var(--border);">
+                                                    หน่วยกิต</th>
+                                                <th
+                                                    style="text-align:center;padding:.4rem .5rem;border-bottom:1px solid var(--border);">
+                                                    จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% enrolledSubjects.forEach(sub=> { %>
+                                                <tr style="border-bottom:1px solid var(--border);">
+                                                    <td style="padding:.4rem .5rem;">
+                                                        <%= sub.code %>
+                                                    </td>
+                                                    <td style="padding:.4rem .5rem;">
+                                                        <%= sub.name %>
+                                                    </td>
+                                                    <td style="padding:.4rem .5rem;text-align:center;">
+                                                        <%= sub.credit %>
+                                                    </td>
+                                                    <td style="padding:.4rem .5rem;text-align:center;">
+                                                        <form
+                                                            action="/executive/students/<%= student.student_id %>/manage/subjects/remove"
+                                                            method="POST" style="display:inline;"
+                                                            onsubmit="confirmAction(event,'ยืนยันถอนวิชา <%= sub.code %>? เกรดจะถูกลบด้วย')">
+                                                            <input type="hidden" name="subject_id"
+                                                                value="<%= sub.id %>">
+                                                            <button type="submit"
+                                                                style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:1.1em;"
+                                                                title="ถอนวิชา">
+                                                                <i data-lucide="trash-2"
+                                                                    style="width:16px;height:16px;"></i>
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <% } else { %>
+                                    <p style="color:var(--text-muted);font-size:.88em;margin-bottom:1rem;">
+                                        ยังไม่ได้ลงทะเบียนวิชาใด</p>
+                                    <% } %>
+
+                                        <!-- Add subject -->
+                                        <div class="section-title" style="margin-top:.5rem;">เพิ่มรายวิชา</div>
+                                        <% if (availableSubjects && availableSubjects.length> 0) { %>
+                                            <form
+                                                action="/executive/students/<%= student.student_id %>/manage/subjects/add"
+                                                method="POST" style="display:flex;gap:.5rem;">
+                                                <select name="subject_id" class="form-control" required style="flex:1;">
+                                                    <option value="">-- เลือกรายวิชา --</option>
+                                                    <% availableSubjects.forEach(sub=> { %>
+                                                        <option value="<%= sub.id %>">
+                                                            <%= sub.code %> - <%= sub.name %> (<%= sub.credit %>
+                                                                        หน่วยกิต)
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
+                                                <button type="submit" class="btn btn-primary"
+                                                    style="white-space:nowrap;padding:.45rem .9rem;">+ เพิ่ม</button>
+                                            </form>
+                                            <% } else { %>
+                                                <p style="color:var(--text-muted);font-size:.85em;margin:0;">
+                                                    ไม่มีวิชาให้เพิ่มแล้ว</p>
+                                                <% } %>
+                        </div>
+                    </div>
+
+                    <%- include('../layouts/footer') %>

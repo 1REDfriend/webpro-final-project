@@ -1,48 +1,169 @@
 <%- include('../layouts/header') %>
 
-    <div class="card" style="max-width: 600px; margin: 0 auto; margin-top: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2 style="margin: 0;">แก้ไขข้อมูลนักเรียน</h2>
-            <a href="/executive/students" class="btn btn-secondary" style="text-decoration: none;">ย้อนกลับ</a>
+    <style>
+        .pic-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+            margin-bottom: .75rem;
+        }
+
+        .section-header {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: .4rem;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .tag-pill {
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: .82em;
+            font-weight: 600;
+        }
+    </style>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h2 style="margin:0;">แก้ไขข้อมูลนักเรียน</h2>
+        <div style="display:flex;gap:.5rem;">
+            <a href="/executive/students/<%= student.student_id %>/manage" class="btn btn-secondary">⚙ จัดการรายวิชา</a>
+            <a href="/executive/students" class="btn btn-secondary">← กลับ</a>
         </div>
-
-        <% if (error) { %>
-            <div class="alert alert-danger" style="margin-bottom: 1rem;">
-                <%= error %>
-            </div>
-            <% } %>
-                <% if (success) { %>
-                    <div class="alert alert-success" style="margin-bottom: 1rem;">
-                        <%= success %>
-                    </div>
-                    <% } %>
-
-                        <form action="/executive/students/<%= student.student_id %>/edit" method="POST">
-                            <div class="form-group mb-3">
-                                <label>ชื่อ-นามสกุล</label>
-                                <input type="text" name="full_name" class="form-control" required
-                                    value="<%= student.full_name %>">
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label>รหัสนักเรียน (และใช้เป็น Username)</label>
-                                <input type="text" name="student_code" class="form-control" required
-                                    value="<%= student.student_code %>">
-                                <small class="text-muted">การเปลี่ยนรหัสนักเรียนจะเปลี่ยน Username
-                                    ที่ใช้เข้าสู่ระบบด้วย</small>
-                            </div>
-
-                            <div class="form-group mb-4">
-                                <label>รหัสผ่านใหม่ (เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</label>
-                                <input type="text" name="password" class="form-control" placeholder="รหัสผ่านใหม่">
-                            </div>
-
-                            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                                <a href="/executive/students" class="btn btn-secondary"
-                                    style="text-decoration: none;">ยกเลิก</a>
-                                <button type="submit" class="btn btn-primary">บันทึกการเปลี่ยนแปลง</button>
-                            </div>
-                        </form>
     </div>
 
-    <%- include('../layouts/footer') %>
+    <% if (error) { %>
+        <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:8px;margin-bottom:1rem;">
+            <%= error %>
+        </div>
+        <% } %>
+            <% if (success) { %>
+                <div style="background:#d4edda;color:#155724;padding:10px;border-radius:8px;margin-bottom:1rem;">
+                    <%= success %>
+                </div>
+                <% } %>
+
+                    <div class="grid-2" style="align-items:start; gap:1.5rem;">
+                        <!-- Main Edit Form -->
+                        <div class="card">
+                            <form action="/executive/students/<%= student.student_id %>/edit" method="POST"
+                                enctype="multipart/form-data">
+                                <input type="hidden" name="existing_pic"
+                                    value="<%= student.profile_pic || 'default-profile-men.png' %>">
+
+                                <!-- Profile Picture -->
+                                <div class="section-header">รูปโปรไฟล์</div>
+                                <div style="display:flex; gap:1.5rem; align-items:center; margin-bottom:1rem;">
+                                    <div style="text-align:center;">
+                                        <% let picSrc='/image/default-profile-men.png' ; if (student.profile_pic &&
+                                            student.profile_pic !=='default.png' ) {
+                                            picSrc=student.profile_pic.startsWith('http') ||
+                                            student.profile_pic.startsWith('/') ? student.profile_pic : '/image/' +
+                                            student.profile_pic; } %>
+                                            <img src="<%= picSrc %>" alt="Profile" class="pic-preview" id="picPreview">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:.88em;color:var(--text-muted);">อัปโหลดรูปใหม่</label>
+                                        <input type="file" name="profile_pic_file" accept="image/*" class="form-control"
+                                            style="margin-bottom:.5rem;"
+                                            onchange="document.getElementById('picPreview').src=URL.createObjectURL(this.files[0])">
+                                        <label
+                                            style="font-size:.82em;color:var(--text-muted);display:flex;align-items:center;gap:.4rem;">
+                                            <input type="checkbox" name="clear_pic" value="1">
+                                            รีเซ็ตเป็นรูปเริ่มต้นตามเพศ
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Basic Info -->
+                                <div class="section-header">ข้อมูลทั่วไป</div>
+                                <div class="form-group mb-3">
+                                    <label>ชื่อ-นามสกุล</label>
+                                    <input type="text" name="full_name" class="form-control"
+                                        value="<%= student.full_name %>" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>รหัสนักเรียน <small class="text-muted">(ใช้เป็น Username
+                                            ด้วย)</small></label>
+                                    <input type="text" name="student_code" class="form-control"
+                                        value="<%= student.student_code %>" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>เพศ</label>
+                                    <select name="gender" class="form-control">
+                                        <option value="male" <%=student.gender==='male' ?'selected':''%>>ชาย</option>
+                                        <option value="female" <%=student.gender==='female' ?'selected':''%>>หญิง
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label>ห้องเรียน</label>
+                                    <select name="classroom_id" class="form-control" required>
+                                        <% classrooms.forEach(c=> { %>
+                                            <option value="<%= c.id %>" <%=student.classroom_id===c.id?'selected':''%>>
+                                                <%= c.name %>
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label>รหัสผ่านใหม่ <small
+                                            class="text-muted">(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</small></label>
+                                    <input type="password" name="password" class="form-control"
+                                        placeholder="รหัสผ่านใหม่">
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" style="width:100%;">💾
+                                    บันทึกข้อมูล</button>
+                            </form>
+                        </div>
+
+                        <!-- Enrolled Subjects Panel -->
+                        <div class="card">
+                            <div class="section-header" style="margin-top:0;">วิชาที่ลงทะเบียน (<%=
+                                    enrolledSubjects.length %> วิชา)</div>
+                            <% if (enrolledSubjects.length> 0) { %>
+                                <table style="width:100%;border-collapse:collapse;font-size:.9em;">
+                                    <thead>
+                                        <tr>
+                                            <th
+                                                style="text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--border);">
+                                                รหัสวิชา</th>
+                                            <th
+                                                style="text-align:left;padding:.4rem .5rem;border-bottom:1px solid var(--border);">
+                                                ชื่อวิชา</th>
+                                            <th
+                                                style="text-align:center;padding:.4rem .5rem;border-bottom:1px solid var(--border);">
+                                                หน่วยกิต</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% enrolledSubjects.forEach(s=> { %>
+                                            <tr>
+                                                <td style="padding:.4rem .5rem;"><span class="tag-pill">
+                                                        <%= s.code %>
+                                                    </span></td>
+                                                <td style="padding:.4rem .5rem;">
+                                                    <%= s.name %>
+                                                </td>
+                                                <td style="padding:.4rem .5rem;text-align:center;">
+                                                    <%= s.credit %>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                                    </tbody>
+                                </table>
+                                <p style="margin-top:.75rem;font-size:.8em;color:var(--text-muted);">
+                                    เพิ่ม/ลบวิชาได้ที่ปุ่ม <strong>⚙ จัดการรายวิชา</strong> ด้านบน</p>
+                                <% } else { %>
+                                    <p class="text-muted" style="margin:0;font-size:.88em;">ยังไม่ได้ลงทะเบียนวิชาใด</p>
+                                    <% } %>
+                        </div>
+                    </div>
+
+                    <%- include('../layouts/footer') %>
