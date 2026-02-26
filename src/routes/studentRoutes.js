@@ -19,5 +19,6 @@ router.get('/schedule', studentController.getSchedule);
 router.get('/requests', studentController.getRequests);
 router.post('/requests', upload.single('attachment'), studentController.postRequest);
 router.get('/transcript/download', studentController.downloadTranscript);
+router.get('/behavior-history', studentController.getBehaviorHistory);
 
 module.exports = router;

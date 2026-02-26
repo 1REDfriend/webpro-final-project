@@ -121,14 +121,33 @@ exports.getSchedule = async (req, res) => {
     try {
         const student = await getStudentData(req.session.user.id);
         db.all(`
-            SELECT sch.*, s.code, s.name, u.full_name as teacher_name
+            SELECT sch.*, s.code, s.name, s.credit, u.full_name as teacher_name
             FROM schedules sch
             JOIN subjects s ON sch.subject_id = s.id
             LEFT JOIN users u ON s.teacher_id = u.id
             WHERE sch.classroom_id = ?
             ORDER BY sch.day, sch.time_slot
         `, [student.classroom_id], (err, schedule) => {
-            res.render('student/schedule', { student, schedule });
+            res.render('student/schedule', { student, schedule: schedule || [] });
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Database Error');
+    }
+};
+
+exports.getBehaviorHistory = async (req, res) => {
+    try {
+        const student = await getStudentData(req.session.user.id);
+        db.all(`
+            SELECT bl.*, u.full_name as teacher_name
+            FROM behavior_logs bl
+            LEFT JOIN users u ON bl.recorded_by = u.id
+            WHERE bl.student_id = ?
+            ORDER BY bl.created_at DESC
+        `, [student.id], (err, logs) => {
+            if (err) { console.error(err); logs = []; }
+            res.render('student/behavior-history', { student, logs: logs || [] });
         });
     } catch (err) {
         console.error(err);

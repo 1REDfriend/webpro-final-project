@@ -318,7 +318,8 @@
                 document.getElementById('modal-code').textContent = d.code || '-';
                 document.getElementById('modal-teacher').textContent = d.teacher || '-';
                 document.getElementById('modal-time').textContent = d.time || '-';
-                document.getElementById('modal-credit').textContent = d.credit ? d.credit + ' หน่วยกิต' : '-';
+                const credit = d.credit;
+                document.getElementById('modal-credit').textContent = (credit !== undefined && credit !== '') ? credit + ' หน่วยกิต' : '-';
                 document.getElementById('scheduleModal').classList.add('active');
             }
             function closeModal() {

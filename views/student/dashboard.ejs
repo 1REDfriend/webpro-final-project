@@ -1,5 +1,114 @@
 <%- include('../layouts/header') %>
 
+    <style>
+        /* Announcement horizontal cards */
+        .announce-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .announce-hcard {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .announce-hcard:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+        }
+
+        .announce-hcard-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .announce-hcard-body {
+            padding: 0.85rem 1rem;
+            flex: 1;
+        }
+
+        /* When image exists - overlay style */
+        .announce-hcard.has-image {
+            min-height: 220px;
+        }
+
+        .announce-hcard.has-image .announce-hcard-img-wrap {
+            position: relative;
+            flex: 1;
+        }
+
+        .announce-hcard.has-image .announce-hcard-img {
+            width: 100%;
+            height: 100%;
+            min-height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .announce-hcard.has-image .announce-hcard-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent 0%, rgba(0, 0, 0, 0.72) 50%, rgba(0, 0, 0, 0.88) 100%);
+            padding: 1.5rem 1rem 0.9rem;
+            color: #fff;
+        }
+
+        .announce-hcard.has-image .announce-hcard-overlay .announce-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            color: #fff;
+        }
+
+        .announce-hcard.has-image .announce-hcard-overlay .announce-desc {
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.82);
+            margin: 0 0 0.3rem;
+        }
+
+        .announce-hcard.has-image .announce-hcard-overlay .announce-date {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* No image card */
+        .announce-hcard.no-image .announce-hcard-body {
+            border-left: 4px solid var(--primary);
+        }
+
+        .announce-hcard.no-image .announce-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            color: var(--text-main);
+        }
+
+        .announce-hcard.no-image .announce-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin: 0 0 0.3rem;
+        }
+
+        .announce-hcard.no-image .announce-date {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+    </style>
+
     <h2 class="mb-4">แผงควบคุมนักเรียน</h2>
 
     <div class="grid-2">
@@ -30,6 +139,10 @@
                     <%= student.behavior_score %>
                 </div>
                 <p class="text-muted">คะแนนเริ่มต้น 100 คะแนน</p>
+                <a href="/student/behavior-history" class="btn btn-secondary"
+                    style="margin-top: 0.5rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <i data-lucide="history" style="width:16px;height:16px;"></i> ดูประวัติคะแนน
+                </a>
         </div>
     </div>
 
@@ -39,29 +152,45 @@
             <span style="font-size: 0.85em;" class="text-muted">ล่าสุด 5 รายการ</span>
         </div>
         <% if (announcements && announcements.length> 0) { %>
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="announce-grid">
                 <% announcements.forEach(a=> { %>
-                    <div
-                        style="display: flex; gap: 1rem; padding: 1rem; background: #f8fafc; border-radius: 10px; border-left: 4px solid var(--primary);">
-                        <% if (a.image_url) { %>
-                            <img src="<%= a.image_url %>" alt="announcement"
-                                style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0;">
-                            <% } %>
-                                <div style="flex: 1;">
-                                    <strong style="font-size: 1.05rem;">
+                    <% if (a.image_url) { %>
+                        <div class="announce-hcard has-image">
+                            <div class="announce-hcard-img-wrap">
+                                <img src="<%= a.image_url %>" alt="<%= a.title %>" class="announce-hcard-img">
+                                <div class="announce-hcard-overlay">
+                                    <div class="announce-title">
                                         <%= a.title %>
-                                    </strong>
-                                    <p style="margin: 0.25rem 0 0; color: #666; font-size: 0.9em;">
-                                        <%= a.description.substring(0, 120) %>
-                                            <%= a.description.length> 120 ? '...' : '' %>
+                                    </div>
+                                    <p class="announce-desc">
+                                        <%= a.description ? a.description.substring(0, 100) : '' %>
+                                            <%= a.description && a.description.length> 100 ? '...' : '' %>
                                     </p>
-                                    <small class="text-muted">
+                                    <div class="announce-date">
                                         <%= new Date(a.created_at).toLocaleDateString('th-TH', { year: 'numeric' ,
                                             month: 'long' , day: 'numeric' }) %>
-                                    </small>
+                                    </div>
                                 </div>
-                    </div>
-                    <% }); %>
+                            </div>
+                        </div>
+                        <% } else { %>
+                            <div class="announce-hcard no-image">
+                                <div class="announce-hcard-body">
+                                    <div class="announce-title">
+                                        <%= a.title %>
+                                    </div>
+                                    <p class="announce-desc">
+                                        <%= a.description ? a.description.substring(0, 120) : '' %>
+                                            <%= a.description && a.description.length> 120 ? '...' : '' %>
+                                    </p>
+                                    <div class="announce-date">
+                                        <%= new Date(a.created_at).toLocaleDateString('th-TH', { year: 'numeric' ,
+                                            month: 'long' , day: 'numeric' }) %>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
+                                <% }); %>
             </div>
             <% } else { %>
                 <p class="text-muted">ยังไม่มีประกาศในระบบ</p>
