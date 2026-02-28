@@ -98,7 +98,18 @@ exports.getDashboard = async (req, res) => {
             });
         });
 
-        res.render('executive/dashboard', { stats });
+        // All requests (for history table)
+        const allRequests = await new Promise((resolve) => {
+            db.all(`
+                SELECT r.*, u.full_name as sender_name, u.role as sender_role
+                FROM requests r
+                JOIN users u ON r.user_id = u.id
+                ORDER BY r.date DESC
+            `, (err, rows) => resolve(rows || []));
+        });
+        stats.requestTotalCount = allRequests.length;
+
+        res.render('executive/dashboard', { stats, allRequests });
     } catch (err) {
         console.error(err);
         res.status(500).send('Database Error');

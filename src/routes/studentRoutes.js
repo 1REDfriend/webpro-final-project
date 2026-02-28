@@ -18,6 +18,9 @@ router.get('/grades', studentController.getGrades);
 router.get('/schedule', studentController.getSchedule);
 router.get('/requests', studentController.getRequests);
 router.post('/requests', upload.single('attachment'), studentController.postRequest);
+router.post('/requests/cancel', studentController.cancelRequest);
+router.get('/announcements', studentController.getAllAnnouncements);
+router.get('/announcements/:id', studentController.getAnnouncementDetail);
 router.get('/transcript/download', studentController.downloadTranscript);
 router.get('/behavior-history', studentController.getBehaviorHistory);
 

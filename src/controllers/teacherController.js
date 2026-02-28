@@ -296,7 +296,55 @@ exports.getSchedule = async (req, res) => {
 exports.getRequests = (req, res) => {
     db.all('SELECT * FROM requests WHERE user_id = ? ORDER BY date DESC', [req.session.user.id], (err, requests) => {
         if (err) throw err;
-        res.render('teacher/requests', { requests });
+        // Show cancel button for all Pending requests; time check enforced on cancel endpoint
+        const processedRequests = (requests || []).map(r => ({
+            ...r,
+            canCancel: r.status === 'Pending'
+        }));
+        res.render('teacher/requests', { requests: processedRequests });
+    });
+};
+
+exports.cancelRequest = (req, res) => {
+    const { request_id } = req.body;
+    const userId = req.session.user.id;
+    db.get('SELECT * FROM requests WHERE id = ? AND user_id = ?', [request_id, userId], (err, request) => {
+        if (err || !request) return res.redirect('/teacher/requests');
+        const now = Date.now();
+        // SQLite CURRENT_TIMESTAMP is UTC; add 'Z' to parse as UTC (not local time)
+        const dateStr = request.date ? request.date.replace(' ', 'T') + 'Z' : null;
+        const elapsed = dateStr ? now - new Date(dateStr).getTime() : Infinity;
+        if (request.status === 'Pending' && elapsed < 3600000) {
+            db.run('DELETE FROM requests WHERE id = ? AND user_id = ?', [request_id, userId], (err) => {
+                if (err) console.error(err);
+                res.redirect('/teacher/requests');
+            });
+        } else {
+            res.redirect('/teacher/requests');
+            console.log('[DEBUG cancelReq]', {
+                id: request_id,
+                status: request.status,
+                raw_date: request.date,
+                dateStr,
+                elapsed_ms: elapsed,
+                canCancel: request.status === 'Pending' && elapsed < 3600000
+            });
+        }
+    });
+};
+
+exports.getAllAnnouncements = (req, res) => {
+    db.all(`SELECT * FROM announcements WHERE target_audience IN ('both', 'teacher') ORDER BY created_at DESC`, [], (err, announcements) => {
+        if (err) announcements = [];
+        res.render('teacher/announcements-all', { announcements: announcements || [] });
+    });
+};
+
+exports.getAnnouncementDetail = (req, res) => {
+    const id = req.params.id;
+    db.get('SELECT * FROM announcements WHERE id = ? AND target_audience IN ("both", "teacher")', [id], (err, announcement) => {
+        if (err || !announcement) return res.status(404).render('teacher/announcement-detail', { announcement: null });
+        res.render('teacher/announcement-detail', { announcement });
     });
 };
 
@@ -352,27 +400,35 @@ exports.downloadGradesCSV = async (req, res) => {
             return res.status(400).send('ต้องการห้องเรียนและวิชาเพื่อส่งออก CSV');
         }
 
-        let query = `
-            SELECT s.student_code, u.full_name as student_name, 
-                   e.grade_midterm, e.grade_final
+        const sem = semester || '1';
+        const yr = academic_year || '2567';
+        // LEFT JOIN enrollments with specific subject+semester+year so grades always appear
+        const query = `
+            SELECT s.student_code, u.full_name as student_name,
+                   e.grade_midterm, e.grade_final, e.total_score, e.grade_char
             FROM students s
             JOIN users u ON s.user_id = u.id
-            LEFT JOIN enrollments e ON s.id = e.student_id AND e.subject_id = ? AND e.semester = ? AND e.academic_year = ?
+            LEFT JOIN enrollments e ON s.id = e.student_id
+                AND e.subject_id = ?
+                AND (e.semester = ? OR e.semester IS NULL)
+                AND (e.academic_year = ? OR e.academic_year IS NULL)
             WHERE s.classroom_id = ?
             ORDER BY s.student_code
         `;
-        db.all(query, [subject_id, semester || '1', academic_year || '2567', classroom_id], (err, records) => {
+        db.all(query, [subject_id, sem, yr, classroom_id], (err, records) => {
             if (err) throw err;
             const data = records.map(r => ({
                 'รหัสนักเรียน': r.student_code,
                 'ชื่อ-นามสกุล': r.student_name,
-                'คะแนนสอบกลางภาค': r.grade_midterm || 0,
-                'คะแนนสอบปลายภาค': r.grade_final || 0
+                'คะแนนสอบกลางภาค': r.grade_midterm !== null && r.grade_midterm !== undefined ? r.grade_midterm : '',
+                'คะแนนสอบปลายภาค': r.grade_final !== null && r.grade_final !== undefined ? r.grade_final : '',
+                'คะแนนรวม': r.total_score !== null && r.total_score !== undefined ? r.total_score : '',
+                'เกรด': r.grade_char || ''
             }));
             const csvData = stringify(data, { header: true });
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
             res.setHeader('Content-Disposition', 'attachment; filename="grades.csv"');
-            res.send('\uFEFF' + csvData); // Add BOM for excel support
+            res.send('\uFEFF' + csvData);
         });
     } catch (err) {
         console.error(err);

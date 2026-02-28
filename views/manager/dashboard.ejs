@@ -1,5 +1,89 @@
 <%- include('../layouts/header') %>
 
+    <style>
+        .badge-Pending {
+            background: #f39c12;
+            color: #fff;
+            padding: 2px 9px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .badge-Approved {
+            background: #27ae60;
+            color: #fff;
+            padding: 2px 9px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .badge-Rejected {
+            background: #e74c3c;
+            color: #fff;
+            padding: 2px 9px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .req-stat-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.9rem 1rem;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .req-stat-bar .count {
+            margin-left: auto;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .req-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            margin-top: 1rem;
+        }
+
+        .req-history-table th {
+            text-align: left;
+            padding: 0.45rem 0.6rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .req-history-table td {
+            padding: 0.55rem 0.6rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            width: 100%;
+        }
+    </style>
+
     <h2 class="mb-4">แผงควบคุมผู้บริหาร</h2>
 
     <div class="grid-4 mb-4">
@@ -33,12 +117,115 @@
         </div>
     </div>
 
-    <div class="card">
-        <h3>รายงานสรุปภาพรวม</h3>
-        <p>ขณะนี้ระบบ KStudent มีห้องเรียนทั้งหมด <strong>
-                <%= stats.classCount %>
-            </strong> ห้อง และเปิดสอนรายวิชาต่างๆ ตามหลักสูตร</p>
-        <!-- Future: Add Charts using Chart.js if requested -->
+    <!-- Request Stats Section -->
+    <div class="card mb-4">
+        <h3>สถิติคำร้อง</h3>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+            <div class="req-stat-bar" style="background: #f39c12;">
+                <i data-lucide="clock" style="width:18px;height:18px;"></i>
+                <span>รอดำเนินการ</span>
+                <span class="count">
+                    <%= stats.requestPendingCount %>
+                </span>
+            </div>
+            <div class="req-stat-bar" style="background: #27ae60;">
+                <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+                <span>อนุมัติแล้ว</span>
+                <span class="count">
+                    <%= stats.requestApprovedCount %>
+                </span>
+            </div>
+            <div class="req-stat-bar" style="background: #e74c3c;">
+                <i data-lucide="x-circle" style="width:18px;height:18px;"></i>
+                <span>ปฏิเสธ</span>
+                <span class="count">
+                    <%= stats.requestRejectedCount %>
+                </span>
+            </div>
+            <div class="req-stat-bar" style="background: #6c5ce7;">
+                <i data-lucide="file-text" style="width:18px;height:18px;"></i>
+                <span>คำร้องทั้งหมด</span>
+                <span class="count">
+                    <%= stats.requestTotalCount %>
+                </span>
+            </div>
+        </div>
     </div>
+
+    <!-- Request History Table -->
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <h3 style="margin:0;">ประวัติคำร้องทั้งหมด</h3>
+            <span style="font-size:0.85em;" class="text-muted">
+                <%= allRequests.length %> รายการ
+            </span>
+        </div>
+
+        <div class="search-box">
+            <i data-lucide="search" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+            <input type="text" id="reqSearch" placeholder="ค้นหาชื่อ, หัวข้อ, สถานะ..." oninput="filterRequests()">
+        </div>
+
+        <% if (allRequests && allRequests.length> 0) { %>
+            <div style="overflow-x:auto;max-height:450px;overflow-y:auto;">
+                <table class="req-history-table" id="reqTable">
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>ผู้ส่ง</th>
+                            <th>ประเภท</th>
+                            <th>หัวข้อ</th>
+                            <th>สถานะ</th>
+                            <th>ตอบกลับ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reqTbody">
+                        <% allRequests.forEach(req=> { %>
+                            <tr>
+                                <td style="white-space:nowrap;">
+                                    <%= new Date(req.date).toLocaleDateString('th-TH') %>
+                                </td>
+                                <td>
+                                    <%= req.sender_name %>
+                                        <br><span style="font-size:0.8em;color:var(--accent);">
+                                            <%= req.sender_role %>
+                                        </span>
+                                </td>
+                                <td>
+                                    <%= req.topic %>
+                                </td>
+                                <td style="max-width:200px;font-size:0.85rem;color:var(--text-muted);">
+                                    <%= req.description ? req.description.substring(0, 60) : '-' %>
+                                        <%= req.description && req.description.length> 60 ? '...' : '' %>
+                                </td>
+                                <td>
+                                    <span class="badge badge-<%= req.status %>">
+                                        <%= req.status==='Pending' ? 'รอดำเนินการ' : req.status==='Approved'
+                                            ? 'อนุมัติแล้ว' : 'ปฏิเสธ' %>
+                                    </span>
+                                </td>
+                                <td style="font-size:0.85rem;">
+                                    <%= req.reply || '-' %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+                <p class="text-muted" style="text-align:center;padding:2rem 0;">ยังไม่มีคำร้องในระบบ</p>
+                <% } %>
+    </div>
+
+    <script>
+        function filterRequests() {
+            const q = document.getElementById('reqSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#reqTbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(q) ? '' : 'none';
+            });
+        }
+    </script>
 
     <%- include('../layouts/footer') %>

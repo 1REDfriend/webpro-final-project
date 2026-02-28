@@ -1,0 +1,74 @@
+<%- include('../layouts/header') %>
+
+    <style>
+        .announce-detail-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .announce-detail-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            border-radius: 14px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .announce-detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .announce-detail-body {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-main);
+            white-space: pre-wrap;
+        }
+    </style>
+
+    <div class="announce-detail-container">
+        <div style="display: flex; align-items: center; gap:1rem; margin-bottom: 1.5rem;">
+            <a href="/student/dashboard" class="btn btn-secondary"
+                style="display:inline-flex;align-items:center;gap:.4rem;">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> กลับ
+            </a>
+            <h2 style="margin: 0;">ประกาศจากโรงเรียน</h2>
+        </div>
+
+        <% if (!announcement) { %>
+            <div class="card">
+                <p class="text-muted" style="text-align:center;padding:3rem 0;">ไม่พบประกาศนี้หรือไม่มีสิทธิ์เข้าถึง</p>
+            </div>
+            <% } else { %>
+                <div class="card">
+                    <% if (announcement.image_url) { %>
+                        <img src="<%= announcement.image_url %>" alt="<%= announcement.title %>"
+                            class="announce-detail-image">
+                        <% } %>
+                            <div class="announce-detail-meta">
+                                <i data-lucide="calendar" style="width:16px;height:16px;color:var(--text-muted);"></i>
+                                <span class="text-muted" style="font-size:0.88rem;">
+                                    <%= new Date(announcement.created_at).toLocaleDateString('th-TH', { weekday: 'long'
+                                        , year: 'numeric' , month: 'long' , day: 'numeric' }) %>
+                                </span>
+                                <% const aud=announcement.target_audience; %>
+                                    <span
+                                        style="font-size:0.78rem;padding:2px 10px;border-radius:20px;background:<%=aud==='student'?'#dbeafe':aud==='teacher'?'#dcfce7':'#f3e8ff'%>;color:<%=aud==='student'?'#1d4ed8':aud==='teacher'?'#15803d':'#7e22ce'%>;">
+                                        <%= aud==='both' ? 'ทุกคน' : aud==='student' ? 'นักเรียน' : 'ครู' %>
+                                    </span>
+                            </div>
+                            <h2 style="margin:0 0 1.25rem;font-size:1.5rem;">
+                                <%= announcement.title %>
+                            </h2>
+                            <div class="announce-detail-body">
+                                <%= announcement.description || '' %>
+                            </div>
+                </div>
+                <% } %>
+    </div>
+
+    <%- include('../layouts/footer') %>

@@ -10,6 +10,7 @@ router.post('/request-update', staffController.updateRequestStatus);
 
 // Announcement routes (modal on dashboard)
 router.post('/announcements', staffController.createAnnouncement);
+router.post('/announcements/edit', staffController.editAnnouncement);
 router.post('/announcements/delete', staffController.deleteAnnouncement);
 
 module.exports = router;

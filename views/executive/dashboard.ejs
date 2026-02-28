@@ -56,24 +56,39 @@
             <h3>สถิติคำร้อง</h3>
             <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
                 <div
-                    style="display: flex; justify-content: space-between; padding: 1rem; background: #ffc400; border-radius: 8px;">
-                    <span style="font-weight: bold; color: #ffffff;">รอดำเนินการ</span>
-                    <span style="font-weight: bold; font-size: 1.2rem;">
+                    style="display: flex; align-items:center; gap:0.7rem; justify-content: space-between; padding: 0.85rem 1rem; background: #ffc400; border-radius: 8px;">
+                    <span style="display:flex;align-items:center;gap:.4rem;font-weight:bold;color:#fff;">
+                        <i data-lucide="clock" style="width:16px;height:16px;"></i> รอดำเนินการ
+                    </span>
+                    <span style="font-weight: bold; font-size: 1.2rem; color:#fff;">
                         <%= stats.requestPendingCount %>
                     </span>
                 </div>
                 <div
-                    style="display: flex; justify-content: space-between; padding: 1rem; background: #0bad31; border-radius: 8px;">
-                    <span style="font-weight: bold; color: #ffffff;">อนุมัติแล้ว</span>
-                    <span style="font-weight: bold; font-size: 1.2rem;">
+                    style="display: flex; align-items:center; gap:0.7rem; justify-content: space-between; padding: 0.85rem 1rem; background: #0bad31; border-radius: 8px;">
+                    <span style="display:flex;align-items:center;gap:.4rem;font-weight:bold;color:#fff;">
+                        <i data-lucide="check-circle" style="width:16px;height:16px;"></i> อนุมัติแล้ว
+                    </span>
+                    <span style="font-weight: bold; font-size: 1.2rem; color:#fff;">
                         <%= stats.requestApprovedCount %>
                     </span>
                 </div>
                 <div
-                    style="display: flex; justify-content: space-between; padding: 1rem; background: #dd2333; border-radius: 8px;">
-                    <span style="font-weight: bold; color: #ffffff;">ปฏิเสธ</span>
-                    <span style="font-weight: bold; font-size: 1.2rem;">
+                    style="display: flex; align-items:center; gap:0.7rem; justify-content: space-between; padding: 0.85rem 1rem; background: #dd2333; border-radius: 8px;">
+                    <span style="display:flex;align-items:center;gap:.4rem;font-weight:bold;color:#fff;">
+                        <i data-lucide="x-circle" style="width:16px;height:16px;"></i> ปฏิเสธ
+                    </span>
+                    <span style="font-weight: bold; font-size: 1.2rem; color:#fff;">
                         <%= stats.requestRejectedCount %>
+                    </span>
+                </div>
+                <div
+                    style="display: flex; align-items:center; gap:0.7rem; justify-content: space-between; padding: 0.85rem 1rem; background: #6c5ce7; border-radius: 8px;">
+                    <span style="display:flex;align-items:center;gap:.4rem;font-weight:bold;color:#fff;">
+                        <i data-lucide="file-text" style="width:16px;height:16px;"></i> รวมทั้งหมด
+                    </span>
+                    <span style="font-weight: bold; font-size: 1.2rem; color:#fff;">
+                        <%= stats.requestTotalCount %>
                     </span>
                 </div>
             </div>
@@ -108,5 +123,98 @@
                     <% } %>
         </div>
     </div>
+
+    <!-- Request History Table -->
+    <div class="card mt-4">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <h3 style="margin:0;">ประวัติคำร้องทั้งหมด</h3>
+            <span class="text-muted" style="font-size:0.85em;">
+                <%= allRequests.length %> รายการ
+            </span>
+        </div>
+
+        <!-- Search box -->
+        <div
+            style="display:flex;align-items:center;gap:.5rem;background:rgba(0,0,0,0.05);border:1px solid var(--border);border-radius:8px;padding:.4rem .75rem;margin-bottom:0.75rem;">
+            <i data-lucide="search" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+            <input id="execReqSearch" type="text" placeholder="ค้นหาชื่อ, หัวข้อ, สถานะ..."
+                style="border:none;background:transparent;outline:none;font-size:0.9rem;color:var(--text-main);width:100%;"
+                oninput="filterReqRows()">
+        </div>
+
+        <% if (allRequests && allRequests.length> 0) { %>
+            <div style="overflow-x:auto;max-height:420px;overflow-y:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
+                    <thead style="position:sticky;top:0;background:var(--bg-card);">
+                        <tr>
+                            <th
+                                style="text-align:left;padding:.4rem .6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;">
+                                วันที่</th>
+                            <th
+                                style="text-align:left;padding:.4rem .6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">
+                                ผู้ส่ง</th>
+                            <th
+                                style="text-align:left;padding:.4rem .6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">
+                                หัวข้อ</th>
+                            <th
+                                style="text-align:left;padding:.4rem .6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">
+                                รายละเอียด</th>
+                            <th
+                                style="text-align:left;padding:.4rem .6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">
+                                สถานะ</th>
+                            <th
+                                style="text-align:left;padding:.4rem .6rem;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);">
+                                ตอบกลับ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="execReqTbody">
+                        <% allRequests.forEach(req=> { %>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                                <td style="padding:.5rem .6rem;white-space:nowrap;">
+                                    <%= new Date(req.date).toLocaleDateString('th-TH') %>
+                                </td>
+                                <td style="padding:.5rem .6rem;">
+                                    <%= req.sender_name %><br>
+                                        <span style="font-size:0.8em;color:var(--accent);">
+                                            <%= req.sender_role %>
+                                        </span>
+                                </td>
+                                <td style="padding:.5rem .6rem;">
+                                    <%= req.topic %>
+                                </td>
+                                <td
+                                    style="padding:.5rem .6rem;max-width:180px;font-size:0.83rem;color:var(--text-muted);">
+                                    <%= req.description ? req.description.substring(0, 55) : '-' %>
+                                        <%= req.description && req.description.length> 55 ? '...' : '' %>
+                                </td>
+                                <td style="padding:.5rem .6rem;">
+                                    <span style="padding:2px 9px;border-radius:12px;font-size:0.82em;
+                                        background:<%= req.status==='Pending' ? '#f39c12' : req.status==='Approved' ? '#27ae60' : '#e74c3c' %>;
+                                        color:#fff;">
+                                        <%= req.status==='Pending' ? 'รอ' : req.status==='Approved' ? 'อนุมัติ'
+                                            : 'ปฏิเสธ' %>
+                                    </span>
+                                </td>
+                                <td style="padding:.5rem .6rem;font-size:0.85rem;">
+                                    <%= req.reply || '-' %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+                <p class="text-muted" style="text-align:center;padding:2rem 0;">ยังไม่มีคำร้องในระบบ</p>
+                <% } %>
+    </div>
+
+    <script>
+        function filterReqRows() {
+            const q = document.getElementById('execReqSearch').value.toLowerCase();
+            document.querySelectorAll('#execReqTbody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
 
     <%- include('../layouts/footer') %>

@@ -22,6 +22,9 @@ router.post('/behavior', teacherController.updateBehavior);
 router.post('/grade', teacherController.updateGrade);
 router.get('/requests', teacherController.getRequests);
 router.post('/requests', upload.single('attachment'), teacherController.postRequest);
+router.post('/requests/cancel', teacherController.cancelRequest);
+router.get('/announcements', teacherController.getAllAnnouncements);
+router.get('/announcements/:id', teacherController.getAnnouncementDetail);
 
 // CSV Routes
 router.get('/grades/export', teacherController.downloadGradesCSV);

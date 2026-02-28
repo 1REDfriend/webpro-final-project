@@ -25,38 +25,12 @@
             font-size: 0.82em;
         }
 
-        .announce-card {
-            background: rgba(99, 102, 241, 0.06);
-            border: 1px solid var(--border);
+        .badge-Cancelled {
+            background: #95a5a6;
+            color: #fff;
+            padding: 3px 10px;
             border-radius: 12px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .announce-badge {
-            font-size: 0.75em;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-
-        .badge-student {
-            background: #3498db22;
-            color: #3498db;
-        }
-
-        .badge-teacher {
-            background: #27ae6022;
-            color: #27ae60;
-        }
-
-        .badge-both {
-            background: #9b59b622;
-            color: #9b59b6;
+            font-size: 0.82em;
         }
 
         /* Scrollable dual-column panels */
@@ -122,11 +96,205 @@
             vertical-align: top;
         }
 
+        .req-table tr.clickable-row {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .req-table tr.clickable-row:hover {
+            background: rgba(108, 92, 231, 0.07);
+        }
+
         /* Announce form */
         .announce-form-section {
             padding: 1rem 1.5rem 0.5rem;
             border-bottom: 1px solid var(--border);
             flex-shrink: 0;
+        }
+
+        /* Announce card grid - 4:3 */
+        .announce-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.85rem;
+            padding: 0.5rem 0;
+        }
+
+        .ann-card {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            aspect-ratio: 4 / 3;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ann-card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .ann-card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent 0%, rgba(0, 0, 0, 0.75) 55%, rgba(0, 0, 0, 0.92) 100%);
+            padding: 1rem 0.75rem 0.55rem;
+            color: #fff;
+        }
+
+        .ann-no-img {
+            padding: 0.75rem;
+            border-left: 3px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .ann-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .ann-date {
+            font-size: 0.72rem;
+            margin-top: auto;
+            opacity: 0.7;
+        }
+
+        .ann-badge {
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .badge-student {
+            background: #3498db22;
+            color: #3498db;
+        }
+
+        .badge-teacher {
+            background: #27ae6022;
+            color: #27ae60;
+        }
+
+        .badge-both {
+            background: #9b59b622;
+            color: #9b59b6;
+        }
+
+        /* ann action buttons overlay */
+        .ann-actions {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.4rem;
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .ann-action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+        }
+
+        .ann-action-btn:hover {
+            transform: scale(1.15);
+        }
+
+        .ann-btn-edit {
+            background: rgba(243, 156, 18, 0.9);
+            color: #fff;
+        }
+
+        .ann-btn-delete {
+            background: rgba(231, 76, 60, 0.9);
+            color: #fff;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.75rem 2rem;
+            max-width: 560px;
+            width: 95%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--text-main);
+        }
+
+        .req-detail-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .req-detail-label {
+            min-width: 100px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Edit announce modal */
+        .edit-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-modal-overlay.active {
+            display: flex;
         }
     </style>
 
@@ -154,10 +322,19 @@
         <!-- LEFT: Requests Panel -->
         <div class="panel-card">
             <div class="panel-card-header">
-                <h3>รายการคำร้องทั้งหมด
-                    <span style="font-size:0.82em;color:var(--text-muted);font-weight:400;">(<%= requests.length %>
-                            รายการ)</span>
-                </h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;">
+                    <h3 style="margin:0;">รายการคำร้องทั้งหมด
+                        <span style="font-size:0.82em;color:var(--text-muted);font-weight:400;">(<%= requests.length %>
+                                รายการ)</span>
+                    </h3>
+                    <div style="position:relative;">
+                        <i data-lucide="search"
+                            style="position:absolute;left:.55rem;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-muted);pointer-events:none;"></i>
+                        <input type="text" id="reqSearch" placeholder="ค้นหาคำร้อง..."
+                            oninput="filterRequests(this.value)"
+                            style="padding:.35rem .7rem .35rem 1.85rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main);font-size:.83rem;width:165px;">
+                    </div>
+                </div>
             </div>
             <div class="panel-card-body">
                 <% if (requests && requests.length> 0) { %>
@@ -173,7 +350,8 @@
                         </thead>
                         <tbody>
                             <% requests.forEach(req=> { %>
-                                <tr>
+                                <tr class="clickable-row" onclick="openRequestModal(<%= JSON.stringify(req) %>)"
+                                    data-search="<%= ((req.sender_name||'') + ' ' + (req.topic||'') + ' ' + (req.description||'') + ' ' + (req.sender_role||'') + ' ' + (req.status||'')).toLowerCase() %>">
                                     <td style="white-space:nowrap;">
                                         <%= new Date(req.date).toLocaleDateString('th-TH') %>
                                     </td>
@@ -188,16 +366,9 @@
                                             <%= req.topic %>
                                         </strong><br>
                                         <span style="font-size:0.82em;color:var(--text-muted);">
-                                            <%= req.description ? req.description.substring(0,60) : '' %>
-                                                <%= req.description && req.description.length> 60 ? '...' : '' %>
+                                            <%= req.description ? req.description.substring(0, 40) : '' %>
+                                                <%= req.description && req.description.length> 40 ? '...' : '' %>
                                         </span>
-                                        <% if (req.reply) { %><br><small class="text-muted">ตอบกลับ: <%= req.reply %>
-                                                    </small>
-                                            <% } %>
-                                                <% if (req.attachment_url) { %>
-                                                    <br><a href="/<%= req.attachment_url %>" target="_blank"
-                                                        style="color:var(--accent);font-size:.82em;">📎 ดูเอกสาร</a>
-                                                    <% } %>
                                     </td>
                                     <td>
                                         <span class="badge badge-<%= req.status %>">
@@ -205,14 +376,14 @@
                                                 : 'ปฏิเสธ' %>
                                         </span>
                                     </td>
-                                    <td>
+                                    <td onclick="event.stopPropagation()">
                                         <% if (req.status==='Pending' ) { %>
                                             <form action="/staff/request-update" method="POST"
                                                 style="display:flex;flex-direction:column;gap:.35rem;">
                                                 <input type="hidden" name="id" value="<%= req.id %>">
                                                 <input type="text" name="reply" placeholder="เหตุผล/ตอบกลับ"
                                                     class="form-control"
-                                                    style="width:130px;padding:.3rem .5rem;font-size:.8rem;">
+                                                    style="width:120px;padding:.3rem .5rem;font-size:.8rem;">
                                                 <div style="display:flex;gap:.3rem;">
                                                     <button type="submit" name="status" value="Approved"
                                                         class="btn btn-success"
@@ -230,6 +401,8 @@
                                 <% }); %>
                         </tbody>
                     </table>
+                    <p id="reqEmpty" style="display:none;color:var(--text-muted);text-align:center;padding:1.5rem 0;">
+                        ไม่พบคำร้องที่ค้นหา</p>
                     <% } else { %>
                         <p class="text-muted" style="text-align:center;padding:2rem 0;">ยังไม่มีคำร้องในระบบ</p>
                         <% } %>
@@ -239,15 +412,24 @@
         <!-- RIGHT: Announcements Panel -->
         <div class="panel-card">
             <div class="panel-card-header">
-                <h3 style="display:flex;align-items:center;gap:.5rem;">
-                    <i data-lucide="megaphone" style="width:18px;height:18px;"></i>
-                    จัดการประกาศโรงเรียน
-                    <span style="font-size:0.82em;color:var(--text-muted);font-weight:400;">(<%= announcements ?
-                            announcements.length : 0 %> รายการ)</span>
-                </h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;">
+                    <h3 style="display:flex;align-items:center;gap:.5rem;margin:0;">
+                        <i data-lucide="megaphone" style="width:18px;height:18px;"></i>
+                        จัดการประกาศโรงเรียน
+                        <span style="font-size:0.82em;color:var(--text-muted);font-weight:400;">(<%= announcements ?
+                                announcements.length : 0 %> รายการ)</span>
+                    </h3>
+                    <div style="position:relative;">
+                        <i data-lucide="search"
+                            style="position:absolute;left:.55rem;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-muted);pointer-events:none;"></i>
+                        <input type="text" id="annSearch" placeholder="ค้นหาประกาศ..."
+                            oninput="filterAnnouncements(this.value)"
+                            style="padding:.35rem .7rem .35rem 1.85rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main);font-size:.83rem;width:155px;">
+                    </div>
+                </div>
             </div>
 
-            <!-- Create Form (fixed, not scrollable) -->
+            <!-- Create Form (fixed) -->
             <div class="announce-form-section">
                 <form action="/staff/announcements" method="POST">
                     <div style="display:grid;gap:.6rem;">
@@ -268,48 +450,188 @@
                 </form>
             </div>
 
-            <!-- Announcement List (scrollable) -->
+            <!-- Announcement Card Grid (scrollable) -->
             <div class="panel-card-body">
                 <% if (announcements && announcements.length> 0) { %>
-                    <% announcements.forEach(a=> { %>
-                        <div class="announce-card">
-                            <div style="flex:1;">
-                                <div
-                                    style="display:flex;gap:.5rem;align-items:center;margin-bottom:.3rem;flex-wrap:wrap;">
-                                    <strong>
-                                        <%= a.title %>
-                                    </strong>
-                                    <span class="announce-badge badge-<%= a.target_audience %>">
-                                        <%= a.target_audience==='student' ? 'นักเรียน' : a.target_audience==='teacher'
-                                            ? 'ครู' : 'ทุกคน' %>
-                                    </span>
-                                    <% if (a.image_url) { %>
-                                        <span style="font-size:0.75em;color:var(--text-muted);">🖼️ มีรูป</span>
+                    <div class="announce-card-grid" id="annGrid">
+                        <% announcements.forEach(a=> { %>
+                            <div class="ann-card"
+                                data-ann-search="<%= ((a.title||'') + ' ' + (a.description||'') + ' ' + (a.target_audience||'')).toLowerCase() %>">
+                                <% if (a.image_url) { %>
+                                    <img src="<%= a.image_url %>" alt="<%= a.title %>" class="ann-card-img">
+                                    <div class="ann-card-overlay">
+                                        <div class="ann-title">
+                                            <%= a.title %>
+                                        </div>
+                                        <span class="ann-badge badge-<%= a.target_audience %>">
+                                            <%= a.target_audience==='student' ? 'นักเรียน' :
+                                                a.target_audience==='teacher' ? 'ครู' : 'ทุกคน' %>
+                                        </span>
+                                        <div class="ann-date">
+                                            <%= new Date(a.created_at).toLocaleDateString('th-TH') %>
+                                        </div>
+                                    </div>
+                                    <% } else { %>
+                                        <div class="ann-no-img">
+                                            <div class="ann-title" style="color:var(--text-main)">
+                                                <%= a.title %>
+                                            </div>
+                                            <p
+                                                style="font-size:0.78rem;color:var(--text-muted);margin:.2rem 0 .4rem;flex:1;">
+                                                <%= a.description ? a.description.substring(0, 60) : '' %>
+                                                    <%= a.description && a.description.length> 60 ? '...' : '' %>
+                                            </p>
+                                            <span class="ann-badge badge-<%= a.target_audience %>">
+                                                <%= a.target_audience==='student' ? 'นักเรียน' :
+                                                    a.target_audience==='teacher' ? 'ครู' : 'ทุกคน' %>
+                                            </span>
+                                            <div class="ann-date" style="color:var(--text-muted);margin-top:.4rem;">
+                                                <%= new Date(a.created_at).toLocaleDateString('th-TH') %>
+                                            </div>
+                                        </div>
                                         <% } %>
-                                </div>
-                                <p style="margin:0;font-size:.86em;color:var(--text-muted);">
-                                    <%= a.description || a.description_markdown %>
-                                </p>
-                                <small style="color:var(--text-muted);">
-                                    <%= a.creator_name %> · <%= new Date(a.created_at).toLocaleDateString('th-TH') %>
-                                </small>
+                                            <!-- Action buttons -->
+                                            <div class="ann-actions">
+                                                <button class="ann-action-btn ann-btn-edit" title="แก้ไข"
+                                                    onclick='openEditModal(<%= JSON.stringify({id: a.id, title: a.title, description: a.description, image_url: a.image_url, target_audience: a.target_audience}) %>)'>
+                                                    <i data-lucide="pencil" style="width:13px;height:13px;"></i>
+                                                </button>
+                                                <form action="/staff/announcements/delete" method="POST"
+                                                    style="margin:0;" onsubmit="return confirm('ลบประกาศนี้?')">
+                                                    <input type="hidden" name="id" value="<%= a.id %>">
+                                                    <button type="submit" class="ann-action-btn ann-btn-delete"
+                                                        title="ลบ">
+                                                        <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                             </div>
-                            <form action="/staff/announcements/delete" method="POST" style="margin:0;"
-                                onsubmit="return confirm('ลบประกาศนี้?')">
-                                <input type="hidden" name="id" value="<%= a.id %>">
-                                <button type="submit"
-                                    style="background:none;border:none;color:#e74c3c;cursor:pointer;padding:4px;">
-                                    <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
-                                </button>
-                            </form>
-                        </div>
-                        <% }); %>
-                            <% } else { %>
-                                <p style="color:var(--text-muted);text-align:center;padding:2rem 0;">ยังไม่มีประกาศ</p>
-                                <% } %>
+                            <% }); %>
+                    </div>
+                    <p id="annEmpty" style="display:none;color:var(--text-muted);text-align:center;padding:1.5rem 0;">
+                        ไม่พบประกาศที่ค้นหา</p>
+                    <% } else { %>
+                        <p style="color:var(--text-muted);text-align:center;padding:2rem 0;">ยังไม่มีประกาศ</p>
+                        <% } %>
             </div>
         </div>
 
     </div>
+
+    <!-- Request Detail Modal -->
+    <div class="modal-overlay" id="requestModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeRequestModal()">×</button>
+            <h3 style="margin:0 0 1.25rem; display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="file-text" style="width:20px;height:20px;color:var(--primary);"></i>
+                รายละเอียดคำร้อง
+            </h3>
+            <div id="requestModalContent"></div>
+        </div>
+    </div>
+
+    <!-- Edit Announcement Modal -->
+    <div class="edit-modal-overlay" id="editModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+            <h3 style="margin:0 0 1.25rem;">แก้ไขประกาศ</h3>
+            <form id="editAnnouncementForm" action="/staff/announcements/edit" method="POST">
+                <input type="hidden" name="id" id="editId">
+                <div class="form-group">
+                    <label>หัวข้อ</label>
+                    <input type="text" name="title" id="editTitle" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>รายละเอียด</label>
+                    <textarea name="description" id="editDescription" class="form-control" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>URL รูปภาพ (ถ้ามี)</label>
+                    <input type="text" name="image_url" id="editImageUrl" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>กลุ่มเป้าหมาย</label>
+                    <select name="target_audience" id="editTargetAudience" class="form-control">
+                        <option value="both">ทุกคน</option>
+                        <option value="student">นักเรียน</option>
+                        <option value="teacher">ครู</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">บันทึกการแก้ไข</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRequestModal(req) {
+            const statusMap = { Pending: 'รอดำเนินการ', Approved: 'อนุมัติแล้ว', Rejected: 'ปฏิเสธ' };
+            const statusColor = { Pending: '#f39c12', Approved: '#27ae60', Rejected: '#e74c3c' };
+            const date = new Date(req.date).toLocaleString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            let html = `
+                <div class="req-detail-row"><div class="req-detail-label">ผู้ส่ง</div><div>${req.sender_name} <span style="color:var(--accent);font-size:0.85em;">(${req.sender_role})</span></div></div>
+                <div class="req-detail-row"><div class="req-detail-label">วันที่ส่ง</div><div>${date}</div></div>
+                <div class="req-detail-row"><div class="req-detail-label">หัวข้อ</div><div><strong>${req.topic}</strong></div></div>
+                <div class="req-detail-row"><div class="req-detail-label">สถานะ</div><div><span style="background:${statusColor[req.status] || '#95a5a6'};color:#fff;padding:2px 10px;border-radius:12px;font-size:0.85em;">${statusMap[req.status] || req.status}</span></div></div>
+                <div class="req-detail-row" style="flex-direction:column;"><div class="req-detail-label">รายละเอียด</div><div style="margin-top:.4rem;padding:0.85rem;background:rgba(0,0,0,0.06);border-radius:8px;white-space:pre-wrap;font-size:0.9rem;">${req.description || '-'}</div></div>`;
+            if (req.attachment_url) {
+                html += `<div class="req-detail-row"><div class="req-detail-label">ไฟล์แนบ</div><div><a href="/${req.attachment_url}" target="_blank" style="color:var(--primary);display:inline-flex;align-items:center;gap:.3rem;"><i data-lucide="paperclip" style="width:15px;height:15px;"></i> ดูเอกสาร</a></div></div>`;
+            }
+            if (req.reply) {
+                html += `<div class="req-detail-row" style="flex-direction:column;"><div class="req-detail-label">ตอบกลับ</div><div style="margin-top:.4rem;padding:0.85rem;background:rgba(39,174,96,0.1);border-radius:8px;font-size:0.9rem;">${req.reply}</div></div>`;
+            }
+            document.getElementById('requestModalContent').innerHTML = html;
+            document.getElementById('requestModal').classList.add('active');
+            if (window.lucide) lucide.createIcons();
+        }
+        function closeRequestModal() {
+            document.getElementById('requestModal').classList.remove('active');
+        }
+        document.getElementById('requestModal').addEventListener('click', function (e) {
+            if (e.target === this) closeRequestModal();
+        });
+
+        function openEditModal(ann) {
+            document.getElementById('editId').value = ann.id;
+            document.getElementById('editTitle').value = ann.title;
+            document.getElementById('editDescription').value = ann.description || '';
+            document.getElementById('editImageUrl').value = ann.image_url || '';
+            document.getElementById('editTargetAudience').value = ann.target_audience || 'both';
+            document.getElementById('editModal').classList.add('active');
+        }
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+        document.getElementById('editModal').addEventListener('click', function (e) {
+            if (e.target === this) closeEditModal();
+        });
+
+        // Live search: requests
+        function filterRequests(q) {
+            q = q.toLowerCase().trim();
+            const tableRows = document.querySelectorAll('.req-table tbody tr');
+            let visible = 0;
+            tableRows.forEach(r => {
+                const match = !q || (r.dataset.search || '').includes(q);
+                r.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            const empty = document.getElementById('reqEmpty');
+            if (empty) empty.style.display = (visible === 0 && q) ? '' : 'none';
+        }
+
+        // Live search: announcements cards
+        function filterAnnouncements(q) {
+            q = q.toLowerCase().trim();
+            const cards = document.querySelectorAll('#annGrid .ann-card');
+            let visible = 0;
+            cards.forEach(c => {
+                const match = !q || (c.dataset.annSearch || '').includes(q);
+                c.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            const empty = document.getElementById('annEmpty');
+            if (empty) empty.style.display = (visible === 0 && q) ? '' : 'none';
+        }
+    </script>
 
     <%- include('../layouts/footer') %>

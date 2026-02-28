@@ -54,3 +54,15 @@ exports.deleteAnnouncement = (req, res) => {
         res.redirect('/staff/dashboard');
     });
 };
+
+exports.editAnnouncement = (req, res) => {
+    const { id, title, description, image_url, target_audience } = req.body;
+    db.run(
+        `UPDATE announcements SET title = ?, description = ?, description_markdown = ?, image_url = ?, target_audience = ? WHERE id = ?`,
+        [title, description, description, image_url || null, target_audience || 'both', id],
+        (err) => {
+            if (err) console.error(err);
+            res.redirect('/staff/dashboard');
+        }
+    );
+};

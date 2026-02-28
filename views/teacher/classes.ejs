@@ -1,11 +1,201 @@
 <%- include('../layouts/header') %>
 
+    <style>
+        /* Subject code cards */
+        .subject-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.85rem;
+            margin-top: 0.75rem;
+        }
+
+        .subject-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(108, 92, 231, 0.08) 100%);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 10px;
+            padding: 0.9rem 1.1rem;
+        }
+
+        .subject-card-code {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .subject-card-name {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            margin-bottom: 0.35rem;
+        }
+
+        .subject-card-id {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* CSV section */
+        .csv-section {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            margin-top: 1rem;
+        }
+
+        .csv-box {
+            flex: 1;
+            padding: 1.5rem;
+            background: rgba(99, 102, 241, 0.045);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        @media (max-width: 700px) {
+            .csv-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+
     <h2 class="mb-4">จัดการห้องเรียนและคะแนน</h2>
 
+    <!-- Section 1: Grade Entry -->
     <div class="card mb-4">
-        <h3>รายชื่อนักเรียน</h3>
-        <form action="/teacher/classes" method="GET" class="mb-4"
-            style="display: flex; gap: 1rem; align-items: flex-end;">
+        <h3>ลงคะแนนสอบ</h3>
+        <p class="text-muted mb-4">เลือกวิชาและนักเรียนเพื่อบันทึกคะแนน (Demo: กรอก Student ID และ Subject ID)</p>
+        <form action="/teacher/grade" method="POST" class="grid-4" style="align-items: end;">
+            <div class="form-group" style="margin: 0;">
+                <label>รหัสนักเรียน</label>
+                <input type="number" name="student_id" class="form-control" placeholder="ID" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>รหัสวิชา</label>
+                <input type="number" name="subject_id" class="form-control" placeholder="ID" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Midterm (50)</label>
+                <input type="number" name="grade_midterm" class="form-control" max="50" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label>Final (50)</label>
+                <input type="number" name="grade_final" class="form-control" max="50" required>
+            </div>
+            <button type="submit" class="btn btn-primary"
+                style="grid-column: span 4; margin-top: 1rem;">บันทึกคะแนน</button>
+        </form>
+
+        <!-- CSV Management -->
+        <div class="mt-4" style="border-top: 1px solid var(--border); padding-top: 1rem;">
+            <h4>จัดการคะแนนด้วยไฟล์ CSV</h4>
+            <div class="csv-section">
+
+                <!-- Download -->
+                <div class="csv-box">
+                    <h5 style="margin-top: 0; color: var(--primary); display:flex;align-items:center;gap:.4rem;">
+                        <i data-lucide="download" style="width:16px;height:16px;"></i>
+                        1. ดาวน์โหลดไฟล์นักเรียน
+                    </h5>
+                    <p class="text-muted" style="font-size: 0.9em;">
+                        เลือกวิชาและห้องเรียนเพื่อดาวน์โหลดรายชื่อพร้อมคะแนนในรูปแบบ CSV</p>
+                    <form action="/teacher/grades/export" method="GET"
+                        style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <select name="subject_id" class="form-control" required>
+                            <option value="">-- เลือกวิชา --</option>
+                            <% subjects.forEach(sub=> { %>
+                                <option value="<%= sub.id %>">
+                                    <%= sub.code %> - <%= sub.name %>
+                                </option>
+                                <% }); %>
+                        </select>
+                        <select name="classroom_id" class="form-control" required>
+                            <option value="">-- เลือกห้องเรียน --</option>
+                            <% classrooms.forEach(c=> { %>
+                                <option value="<%= c.id %>">
+                                    <%= c.name %>
+                                </option>
+                                <% }); %>
+                        </select>
+                        <select name="semester" class="form-control" required>
+                            <option value="1">ภาคเรียนที่ 1</option>
+                            <option value="2">ภาคเรียนที่ 2</option>
+                        </select>
+                        <button type="submit" class="btn btn-secondary"
+                            style="margin-top: 0.5rem; display:flex;align-items:center;gap:.4rem;justify-content:center;">
+                            <i data-lucide="file-down" style="width:16px;height:16px;"></i> ดาวน์โหลด CSV
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Upload -->
+                <div class="csv-box">
+                    <h5 style="margin-top: 0; color: var(--accent); display:flex;align-items:center;gap:.4rem;">
+                        <i data-lucide="upload" style="width:16px;height:16px;"></i>
+                        2. อัปโหลดคะแนน
+                    </h5>
+                    <p class="text-muted" style="font-size: 0.9em;">อัปโหลดไฟล์ CSV
+                        ที่กรอกคะแนนเรียบร้อยแล้วเพื่อบันทึกเข้าระบบ</p>
+                    <form action="/teacher/grades/import" method="POST" enctype="multipart/form-data"
+                        style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <input type="number" name="subject_id" class="form-control" placeholder="รหัสวิชา (เช่น 1)"
+                            required>
+                        <select name="semester" class="form-control" required>
+                            <option value="1">ภาคเรียนที่ 1</option>
+                            <option value="2">ภาคเรียนที่ 2</option>
+                        </select>
+                        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                        <button type="submit" class="btn btn-primary"
+                            style="margin-top: 0.5rem; display:flex;align-items:center;gap:.4rem;justify-content:center;">
+                            <i data-lucide="file-up" style="width:16px;height:16px;"></i> อัปโหลดและบันทึกคะแนน
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject ID Reference Cards -->
+        <div class="mt-4" style="border-top: 1px solid var(--border); padding-top: 1rem;">
+            <h4 style="display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="book-open" style="width:18px;height:18px;color:var(--primary);"></i>
+                รหัสวิชาของท่าน
+            </h4>
+            <% if (subjects && subjects.length> 0) { %>
+                <div class="subject-card-grid">
+                    <% subjects.forEach(sub=> { %>
+                        <div class="subject-card">
+                            <div class="subject-card-code">
+                                <i data-lucide="tag" style="width:14px;height:14px;"></i>
+                                <%= sub.code %>
+                            </div>
+                            <div class="subject-card-name">
+                                <%= sub.name %>
+                            </div>
+                            <div class="subject-card-id">
+                                <i data-lucide="hash" style="width:12px;height:12px;"></i>
+                                ID: <strong>
+                                    <%= sub.id %>
+                                </strong>
+                            </div>
+                        </div>
+                        <% }) %>
+                </div>
+                <% } else { %>
+                    <p class="text-muted">ยังไม่มีรายวิชา</p>
+                    <% } %>
+        </div>
+    </div>
+
+    <!-- Section 2: Filter -->
+    <div class="card mb-4">
+        <h3>กรองข้อมูลนักเรียน</h3>
+        <form action="/teacher/classes" method="GET"
+            style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
             <div class="form-group" style="margin: 0;">
                 <label>เปลี่ยนห้องเรียน</label>
                 <select name="classroom_id" class="form-control">
@@ -30,8 +220,22 @@
             <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.2rem;">กรองข้อมูล</button>
             <a href="/teacher/classes" class="btn btn-secondary" style="padding: 0.5rem 1.2rem;">ล้างตัวกรอง</a>
         </form>
+    </div>
 
-        <table>
+    <!-- Section 3: Student List (bottom) -->
+    <div class="card">
+        <div
+            style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem;">
+            <h3 style="margin:0;">รายชื่อนักเรียน</h3>
+            <div style="position:relative;">
+                <i data-lucide="search"
+                    style="position:absolute;left:.6rem;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-muted);pointer-events:none;"></i>
+                <input type="text" id="studentSearch" placeholder="ค้นหานักเรียน..."
+                    oninput="filterStudents(this.value)"
+                    style="padding:.4rem .75rem .4rem 2rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main);font-size:.88rem;width:210px;">
+            </div>
+        </div>
+        <table style="margin-top: 0;" id="studentTable">
             <thead>
                 <tr>
                     <th>ห้อง</th>
@@ -44,7 +248,8 @@
             </thead>
             <tbody>
                 <% students.forEach(s=> { %>
-                    <tr>
+                    <tr
+                        data-search="<%= (s.classroom_name + ' ' + s.student_code + ' ' + s.name + ' ' + s.behavior_score).toLowerCase() %>">
                         <td>
                             <%= s.classroom_name %>
                         </td>
@@ -62,14 +267,15 @@
                                 style="padding: 0.3rem 0.8rem; font-size: 0.9em;">ดูเกรด</a>
                         </td>
                         <td>
-                            <form action="/teacher/behavior" method="POST"
-                                style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <form class="behavior-form" action="/teacher/behavior" method="POST"
+                                style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;"
+                                data-student="<%= s.name %>">
                                 <input type="hidden" name="student_id" value="<%= s.id %>">
                                 <input type="number" name="score_change" placeholder="+/-" style="width: 60px;"
-                                    required>
+                                    class="form-control" required>
                                 <input type="text" name="reason" placeholder="เหตุผล" style="width: 120px;"
                                     class="form-control" style="padding: 0.3rem;">
-                                <button type="submit" class="btn btn-secondary"
+                                <button type="button" class="btn btn-secondary behavior-submit-btn"
                                     style="padding: 0.3rem 0.8rem;">บันทึก</button>
                             </form>
                         </td>
@@ -77,96 +283,55 @@
                     <% }); %>
             </tbody>
         </table>
+        <p id="noStudentResult" style="display:none;color:var(--text-muted);text-align:center;padding:2rem 0;">
+            ไม่พบนักเรียนที่ค้นหา</p>
     </div>
 
-    <div class="card">
-        <h3>ลงคะแนนสอบ</h3>
-        <p class="text-muted mb-4">เลือกวิชาและนักเรียนเพื่อบันทึกคะแนน (Demo: กรอก Student ID และ Subject ID)</p>
-        <form action="/teacher/grade" method="POST" class="grid-4" style="align-items: end;">
-            <div class="form-group" style="margin: 0;">
-                <label>รหัสนักเรียน</label>
-                <input type="number" name="student_id" class="form-control" placeholder="ID" required>
-            </div>
-            <div class="form-group" style="margin: 0;">
-                <label>รหัสวิชา</label>
-                <input type="number" name="subject_id" class="form-control" placeholder="ID" required>
-            </div>
-            <div class="form-group" style="margin: 0;">
-                <label>Midterm (50)</label>
-                <input type="number" name="grade_midterm" class="form-control" max="50" required>
-            </div>
-            <div class="form-group" style="margin: 0;">
-                <label>Final (50)</label>
-                <input type="number" name="grade_final" class="form-control" max="50" required>
-            </div>
-            <button type="submit" class="btn btn-primary"
-                style="grid-column: span 4; margin-top: 1rem;">บันทึกคะแนน</button>
-        </form>
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Live search for student table
+        function filterStudents(q) {
+            q = q.toLowerCase().trim();
+            const rows = document.querySelectorAll('#studentTable tbody tr');
+            let visible = 0;
+            rows.forEach(r => {
+                const match = !q || (r.dataset.search || '').includes(q);
+                r.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            document.getElementById('noStudentResult').style.display = visible === 0 && q ? '' : 'none';
+        }
 
-        <div class="mt-4" style="border-top: 1px solid #eee; padding-top: 1rem;">
-            <h4>จัดการคะแนนด้วยไฟล์ CSV</h4>
-            <div style="display: flex; gap: 2rem; align-items: flex-start; margin-top: 1rem;">
-
-                <!-- ดาวน์โหลด Template -->
-                <div
-                    style="flex: 1; padding: 1.5rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <h5 style="margin-top: 0; color: var(--primary);">1. ดาวน์โหลดไฟล์นักเรียน</h5>
-                    <p class="text-muted" style="font-size: 0.9em;">
-                        เลือกวิชาและห้องเรียนเพื่อดาวน์โหลดรายชื่อนักเรียนในรูปแบบ CSV</p>
-                    <form action="/teacher/grades/export" method="GET"
-                        style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <input type="number" name="subject_id" class="form-control" placeholder="รหัสวิชา (เช่น 1)"
-                            required>
-                        <select name="classroom_id" class="form-control" required>
-                            <option value="">-- เลือกห้องเรียน --</option>
-                            <% classrooms.forEach(c=> { %>
-                                <option value="<%= c.id %>">
-                                    <%= c.name %>
-                                </option>
-                                <% }); %>
-                        </select>
-                        <select name="semester" class="form-control" required>
-                            <option value="1">ภาคเรียนที่ 1</option>
-                            <option value="2">ภาคเรียนที่ 2</option>
-                        </select>
-                        <button type="submit" class="btn btn-secondary" style="margin-top: 0.5rem;">ดาวน์โหลด
-                            CSV</button>
-                    </form>
-                </div>
-
-                <!-- อัปโหลด คะแนน -->
-                <div
-                    style="flex: 1; padding: 1.5rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <h5 style="margin-top: 0; color: var(--accent);">2. อัปโหลดคะแนน</h5>
-                    <p class="text-muted" style="font-size: 0.9em;">อัปโหลดไฟล์ CSV
-                        ที่กรอกคะแนนเรียบร้อยแล้วเพื่อบันทึกเข้าระบบ</p>
-                    <form action="/teacher/grades/import" method="POST" enctype="multipart/form-data"
-                        style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <input type="number" name="subject_id" class="form-control" placeholder="รหัสวิชา (เช่น 1)"
-                            required>
-                        <select name="semester" class="form-control" required>
-                            <option value="1">ภาคเรียนที่ 1</option>
-                            <option value="2">ภาคเรียนที่ 2</option>
-                        </select>
-                        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
-                        <button type="submit" class="btn btn-primary"
-                            style="margin-top: 0.5rem;">อัปโหลดและบันทึกคะแนน</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-4">
-            <h4>รหัสวิชาของท่าน:</h4>
-            <ul>
-                <% subjects.forEach(sub=> { %>
-                    <li>ID: <strong>
-                            <%= sub.id %>
-                        </strong> | <%= sub.code %> - <%= sub.name %>
-                    </li>
-                    <% }) %>
-            </ul>
-        </div>
-    </div>
+        // SweetAlert for behavior score update
+        document.querySelectorAll('.behavior-submit-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const form = this.closest('.behavior-form');
+                const scoreInput = form.querySelector('input[name="score_change"]');
+                const reasonInput = form.querySelector('input[name="reason"]');
+                const studentName = form.dataset.student || 'นักเรียน';
+                const score = scoreInput.value;
+                if (!score) {
+                    Swal.fire({ icon: 'warning', title: 'กรุณาระบุคะแนน', text: 'กรุณากรอกคะแนนก่อนบันทึก', confirmButtonText: 'ตกลง', confirmButtonColor: '#6c5ce7' });
+                    return;
+                }
+                const sign = parseFloat(score) >= 0 ? '+' : '';
+                Swal.fire({
+                    icon: 'question',
+                    title: 'ยืนยันปรับคะแนน',
+                    html: `ปรับคะแนนของ <strong>${studentName}</strong> เป็น <strong style="color:${parseFloat(score) >= 0 ? '#00b894' : '#ff6b6b'}">${sign}${score}</strong> แต้ม<br>เหตุผล: ${reasonInput.value || 'ไม่ระบุ'}`,
+                    showCancelButton: true,
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: '#6c5ce7',
+                    cancelButtonColor: '#b2bec3'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 
     <%- include('../layouts/footer') %>

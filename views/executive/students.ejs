@@ -43,6 +43,14 @@
         <div class="card">
             <h3>รายชื่อนักเรียนทั้งหมด</h3>
             <% if (students && students.length> 0) { %>
+                <!-- Search -->
+                <div
+                    style="display:flex;align-items:center;gap:.5rem;background:rgba(0,0,0,0.05);border:1px solid var(--border);border-radius:8px;padding:.4rem .75rem;margin:.75rem 0;">
+                    <i data-lucide="search" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+                    <input id="studentSearch" type="text" placeholder="ค้นหาชื่อ, รหัสนักเรียน, ห้องเรียน..."
+                        style="border:none;background:transparent;outline:none;font-size:0.9rem;color:var(--text-main);width:100%;"
+                        oninput="filterStudentRows()">
+                </div>
                 <div style="overflow-x: auto; margin-top: 1rem; max-height: 500px; overflow-y: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead
@@ -55,7 +63,7 @@
                                 <th>จัดการ</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="studentTbody">
                             <% students.forEach(s=> { %>
                                 <tr style="border-bottom: 1px solid #eee;">
                                     <td>
@@ -101,5 +109,15 @@
                     <% } %>
         </div>
     </div>
+
+    <script>
+        function filterStudentRows() {
+            const q = document.getElementById('studentSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#studentTbody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
 
     <%- include('../layouts/footer') %>

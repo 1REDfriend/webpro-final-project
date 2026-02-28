@@ -30,6 +30,14 @@
         <div class="card">
             <h3>รายชื่อครูทั้งหมด</h3>
             <% if (teachers && teachers.length> 0) { %>
+                <!-- Search -->
+                <div
+                    style="display:flex;align-items:center;gap:.5rem;background:rgba(0,0,0,0.05);border:1px solid var(--border);border-radius:8px;padding:.4rem .75rem;margin:.75rem 0;">
+                    <i data-lucide="search" style="width:16px;height:16px;color:var(--text-muted);flex-shrink:0;"></i>
+                    <input id="teacherSearch" type="text" placeholder="ค้นหาชื่อครู, ชื่อผู้ใช้..."
+                        style="border:none;background:transparent;outline:none;font-size:0.9rem;color:var(--text-main);width:100%;"
+                        oninput="filterTeacherRows()">
+                </div>
                 <div style="overflow-x: auto; margin-top: 1rem;">
                     <table>
                         <thead>
@@ -40,7 +48,7 @@
                                 <th>จัดการ</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="teacherTbody">
                             <% teachers.forEach(t=> { %>
                                 <tr>
                                     <td>
@@ -81,5 +89,15 @@
                     <% } %>
         </div>
     </div>
+
+    <script>
+        function filterTeacherRows() {
+            const q = document.getElementById('teacherSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#teacherTbody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+    </script>
 
     <%- include('../layouts/footer') %>

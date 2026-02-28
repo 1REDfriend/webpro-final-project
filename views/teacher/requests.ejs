@@ -1,5 +1,26 @@
 <%- include('../layouts/header') %>
 
+    <style>
+        .cancel-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: none;
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            border-radius: 8px;
+            padding: 3px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s;
+        }
+
+        .cancel-btn:hover {
+            background: #e74c3c;
+            color: #fff;
+        }
+    </style>
+
     <h2 class="mb-4">คำร้องอาจารย์</h2>
 
     <div class="card mb-4">
@@ -35,6 +56,7 @@
                     <th>ประเภท</th>
                     <th>ไฟล์แนบ</th>
                     <th>สถานะ</th>
+                    <th>ยกเลิก</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,6 +67,8 @@
                         </td>
                         <td>
                             <%= req.topic %>
+                                <% if(req.reply) { %><br><small class="text-muted">ตอบกลับ: <%= req.reply %></small>
+                                    <% } %>
                         </td>
                         <td>
                             <% if (req.attachment_url) { %>
@@ -55,10 +79,25 @@
                                     <span class="text-muted">-</span>
                                     <% } %>
                         </td>
-                        <td><span class="badge badge-<%= req.status %>">
+                        <td>
+                            <span class="badge badge-<%= req.status %>">
                                 <%= req.status==='Pending' ? 'รอดำเนินการ' : req.status==='Approved' ? 'อนุมัติแล้ว' :
                                     req.status==='Rejected' ? 'ปฏิเสธ' : req.status %>
-                            </span></td>
+                            </span>
+                        </td>
+                        <td>
+                            <% if (req.canCancel) { %>
+                                <form action="/teacher/requests/cancel" method="POST" style="margin:0;"
+                                    onsubmit="return confirm('ยืนยันการยกเลิกคำร้องนี้?')">
+                                    <input type="hidden" name="request_id" value="<%= req.id %>">
+                                    <button type="submit" class="cancel-btn">
+                                        <i data-lucide="x-circle" style="width:14px;height:14px;"></i> ยกเลิก
+                                    </button>
+                                </form>
+                                <% } else { %>
+                                    <span class="text-muted" style="font-size:0.8rem;">-</span>
+                                    <% } %>
+                        </td>
                     </tr>
                     <% }); %>
             </tbody>

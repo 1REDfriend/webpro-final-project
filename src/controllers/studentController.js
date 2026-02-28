@@ -140,11 +140,11 @@ exports.getBehaviorHistory = async (req, res) => {
     try {
         const student = await getStudentData(req.session.user.id);
         db.all(`
-            SELECT bl.*, u.full_name as teacher_name
+            SELECT bl.*, bl.recorded_at as created_at, u.full_name as teacher_name
             FROM behavior_logs bl
             LEFT JOIN users u ON bl.recorded_by = u.id
             WHERE bl.student_id = ?
-            ORDER BY bl.created_at DESC
+            ORDER BY bl.recorded_at DESC
         `, [student.id], (err, logs) => {
             if (err) { console.error(err); logs = []; }
             res.render('student/behavior-history', { student, logs: logs || [] });
@@ -159,7 +159,12 @@ exports.getRequests = async (req, res) => {
     try {
         db.all('SELECT * FROM requests WHERE user_id = ? ORDER BY date DESC', [req.session.user.id], (err, requests) => {
             if (err) throw err;
-            res.render('student/requests', { requests });
+            // Show cancel button for all Pending requests; time check enforced on cancel endpoint
+            const processedRequests = (requests || []).map(r => ({
+                ...r,
+                canCancel: r.status === 'Pending'
+            }));
+            res.render('student/requests', { requests: processedRequests });
         });
     } catch (err) {
         console.error(err);
@@ -175,6 +180,41 @@ exports.postRequest = (req, res) => {
             if (err) console.error(err);
             res.redirect('/student/requests');
         });
+};
+
+exports.cancelRequest = (req, res) => {
+    const { request_id } = req.body;
+    const userId = req.session.user.id;
+    db.get('SELECT * FROM requests WHERE id = ? AND user_id = ?', [request_id, userId], (err, request) => {
+        if (err || !request) return res.redirect('/student/requests');
+        const now = Date.now();
+        // SQLite CURRENT_TIMESTAMP is UTC; add 'Z' to parse as UTC (not local time)
+        const dateStr = request.date ? request.date.replace(' ', 'T') + 'Z' : null;
+        const elapsed = dateStr ? now - new Date(dateStr).getTime() : Infinity;
+        if (request.status === 'Pending' && elapsed < 3600000) {
+            db.run('DELETE FROM requests WHERE id = ? AND user_id = ?', [request_id, userId], (err) => {
+                if (err) console.error(err);
+                res.redirect('/student/requests');
+            });
+        } else {
+            res.redirect('/student/requests');
+        }
+    });
+};
+
+exports.getAllAnnouncements = (req, res) => {
+    db.all(`SELECT * FROM announcements WHERE target_audience IN ('both', 'student') ORDER BY created_at DESC`, [], (err, announcements) => {
+        if (err) announcements = [];
+        res.render('student/announcements', { announcements: announcements || [] });
+    });
+};
+
+exports.getAnnouncementDetail = (req, res) => {
+    const id = req.params.id;
+    db.get('SELECT * FROM announcements WHERE id = ? AND target_audience IN ("both", "student")', [id], (err, announcement) => {
+        if (err || !announcement) return res.status(404).render('student/announcement-detail', { announcement: null });
+        res.render('student/announcement-detail', { announcement });
+    });
 };
 
 exports.downloadTranscript = async (req, res) => {
