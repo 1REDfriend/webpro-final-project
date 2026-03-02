@@ -217,6 +217,146 @@ label {
     gap: 1rem;
 }
 
+/* ============================================================
+   RESPONSIVE – iPhone 14 Pro Max and all mobile (≤ 480px)
+   ============================================================ */
+
+/* Hamburger button (hidden on desktop) */
+.navbar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.4rem;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 200;
+}
+
+.navbar-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--text-main);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+/* Table wrapper – makes tables horizontally scrollable on mobile */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+    /* --- Navbar --- */
+    .navbar {
+        max-width: 100vw;
+        min-width: unset;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0;
+        flex-wrap: wrap;
+        position: sticky;
+        top: 0;
+        box-sizing: border-box;
+    }
+
+    .navbar-toggle {
+        display: flex;
+    }
+
+    .navbar-menu {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem 0 0.5rem;
+        border-top: 1px solid var(--border);
+        margin-top: 0.5rem;
+    }
+
+    .navbar-menu.open {
+        display: flex;
+    }
+
+    .navbar-menu span {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        padding: 0.25rem 0;
+    }
+
+    .navbar-menu a {
+        margin-left: 0;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(203, 213, 225, 0.4);
+        display: block;
+    }
+
+    .logout-btn {
+        text-align: center;
+        margin-top: 0.25rem;
+    }
+
+    /* --- Container --- */
+    .container {
+        margin: 1rem auto;
+        padding: 0 0.75rem;
+    }
+
+    /* --- Grids --- */
+    .grid-2,
+    .grid-4 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* --- Cards --- */
+    .card {
+        padding: 1.25rem;
+    }
+
+    /* --- Tables --- */
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+
+    th, td {
+        padding: 0.65rem 0.75rem;
+        font-size: 0.88rem;
+    }
+
+    /* --- Forms --- */
+    .form-control {
+        font-size: 16px; /* prevents iOS auto-zoom on input focus */
+    }
+
+    /* --- Buttons --- */
+    .btn {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Tighten up even further for small phones */
+    .card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    h3 {
+        font-size: 1.1rem;
+    }
+}
+
 /* Loading Screen */
 .loading-screen {
     position: fixed;

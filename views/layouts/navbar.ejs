@@ -1,6 +1,11 @@
 <nav class="navbar">
     <a href="/" class="navbar-brand"><img class="navbar-logo" src="/logo.svg" alt="logo">Student</a>
-    <div class="navbar-menu">
+    <button class="navbar-toggle" id="navToggle" aria-label="เมนู" onclick="toggleNav()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="navbar-menu" id="navMenu">
         <% if (user) { %>
             <span>
                 <%= user.full_name %> (<%= user.role.toUpperCase() %>)
@@ -34,3 +39,17 @@
                                             <% } %>
     </div>
 </nav>
+<script>
+    function toggleNav() {
+        const menu = document.getElementById('navMenu');
+        menu.classList.toggle('open');
+    }
+    // Close nav when a link is clicked (useful on mobile)
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.navbar-menu a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                document.getElementById('navMenu').classList.remove('open');
+            });
+        });
+    });
+</script>
