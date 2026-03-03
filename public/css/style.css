@@ -1,4 +1,5 @@
 :root {
+    --primary: #0EA5E9;
     --bg-dark: #F8FAFC;
     --bg-card: #FFFFFF;
     --accent: #0EA5E9;
@@ -13,6 +14,7 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-main);
     font-family: 'Sarabun', sans-serif;
+    font-size: 16px;
     margin: 0;
     padding: 0;
 }
@@ -303,6 +305,7 @@ label {
     .container {
         margin: 1rem auto;
         padding: 0 0.75rem;
+
     }
 
     /* --- Grids --- */
@@ -344,6 +347,7 @@ label {
 @media (max-width: 480px) {
     /* Tighten up even further for small phones */
     .card {
+        width: 90vw;
         padding: 1rem;
         margin-bottom: 1rem;
     }

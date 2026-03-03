@@ -16,6 +16,10 @@ set "PS=powershell -NoProfile -Command"
 call :banner
 echo.
 
+:: เพิ่มบรรทัดนี้เพื่อตรวจสอบอินเทอร์เน็ตก่อนเริ่มขั้นตอนอื่น
+call :check_internet
+if !errorlevel! neq 0 goto :done_error
+
 :: ============================================================
 ::  PRE-CHECK: Verify Node.js is installed
 :: ============================================================
@@ -333,4 +337,22 @@ goto :eof
 
 :error
 %PS% "Write-Host '  [XX] %~1' -ForegroundColor Red"
+goto :eof
+
+:check_internet
+call :section "NETWORK" "Verifying Internet Connection"
+ping -n 1 8.8.8.8 >nul 2>&1
+if !errorlevel! neq 0 (
+    call :error "Internet connection is not available."
+    call :warn "An active internet connection is required for updates and installations."
+    echo.
+    %PS% "Write-Host '  [?] Do you want to try again? (Y) or Exit (N)' -ForegroundColor Cyan"
+    choice /c YN /n /m "     Selection: "
+    if !errorlevel! equ 1 (
+        goto :check_internet
+    ) else (
+        exit /b 1
+    )
+)
+call :ok "Internet connection is active."
 goto :eof
