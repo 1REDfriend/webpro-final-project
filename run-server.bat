@@ -302,6 +302,7 @@ goto :eof
 %PS% "Write-Host '  |                                                      |' -ForegroundColor DarkCyan"
 %PS% "Write-Host '  |     KSTUDENT  SCHOOL  MANAGEMENT  SYSTEM             |' -ForegroundColor Cyan"
 %PS% "Write-Host '  |     Server Startup Launcher  v1.0                    |' -ForegroundColor DarkCyan"
+%PS% "Write-Host '  |     Make sure network connection is available        |' -ForegroundColor Red"
 %PS% "Write-Host '  |                                                      |' -ForegroundColor DarkCyan"
 %PS% "Write-Host '  +======================================================+' -ForegroundColor DarkCyan"
 %PS% "Write-Host ''"
