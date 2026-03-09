@@ -3,7 +3,10 @@ const router = express.Router();
 const db = require('../../database');
 
 router.get('/login', (req, res) => {
-    res.render('auth/login', { error: null, user: null });
+    db.all('SELECT username, password, role, full_name FROM users ORDER BY role, id', [], (err, rows) => {
+        const demoUsers = rows || [];
+        res.render('auth/login', { error: null, user: null, demoUsers });
+    });
 });
 
 router.post('/login', (req, res) => {

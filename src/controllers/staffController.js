@@ -13,7 +13,7 @@ exports.getDashboard = (req, res) => {
         db.all(`
             SELECT a.*, u.full_name as creator_name
             FROM announcements a
-            JOIN users u ON a.created_by = u.id
+            LEFT JOIN users u ON a.created_by = u.id
             ORDER BY a.created_at DESC
         `, (err2, announcements) => {
             if (err2) { console.error(err2); announcements = []; }
@@ -37,8 +37,8 @@ exports.createAnnouncement = (req, res) => {
     const { title, description, image_url, target_audience } = req.body;
     // Insert into both columns for backward-compat with existing DB (description_markdown is NOT NULL)
     db.run(
-        `INSERT INTO announcements (title, description_markdown, description, image_url, target_audience, created_by)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO announcements(title, description_markdown, description, image_url, target_audience, created_by)
+         VALUES(?, ?, ?, ?, ?, ?)`,
         [title, description, description, image_url || null, target_audience || 'both', req.session.user.id],
         (err) => {
             if (err) console.error(err);
@@ -49,7 +49,7 @@ exports.createAnnouncement = (req, res) => {
 
 exports.deleteAnnouncement = (req, res) => {
     const { id } = req.body;
-    db.run(`DELETE FROM announcements WHERE id = ?`, [id], (err) => {
+    db.run(`DELETE FROM announcements WHERE id = ? `, [id], (err) => {
         if (err) console.error(err);
         res.redirect('/staff/dashboard');
     });
@@ -58,7 +58,7 @@ exports.deleteAnnouncement = (req, res) => {
 exports.editAnnouncement = (req, res) => {
     const { id, title, description, image_url, target_audience } = req.body;
     db.run(
-        `UPDATE announcements SET title = ?, description = ?, description_markdown = ?, image_url = ?, target_audience = ? WHERE id = ?`,
+        `UPDATE announcements SET title = ?, description = ?, description_markdown = ?, image_url = ?, target_audience = ? WHERE id = ? `,
         [title, description, description, image_url || null, target_audience || 'both', id],
         (err) => {
             if (err) console.error(err);

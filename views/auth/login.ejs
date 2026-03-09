@@ -501,6 +501,173 @@
                 padding: 2rem 1.5rem;
             }
         }
+        /* ── Users Modal ── */
+        .users-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+        .users-modal.active {
+            display: flex;
+        }
+        .users-modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            animation: modalFadeIn 0.3s ease;
+            position: relative;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .close-modal {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #ef4444; }
+        .users-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .users-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+        .users-search-box {
+            display: flex;
+            align-items: center;
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            width: 100%;
+            max-width: 350px;
+        }
+        .users-search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            width: 100%;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.95rem;
+            margin-left: 0.5rem;
+        }
+        .users-columns {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+        @media (max-width: 992px) {
+            .users-columns { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 576px) {
+            .users-columns { grid-template-columns: 1fr; }
+        }
+        .users-col h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            text-transform: capitalize;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .users-col-student h4 { color: #0ea5e9; border-bottom-color: #0ea5e9; }
+        .users-col-teacher h4 { color: #10b981; border-bottom-color: #10b981; }
+        .users-col-staff h4 { color: #f59e0b; border-bottom-color: #f59e0b; }
+        .users-col-executive h4 { color: #8b5cf6; border-bottom-color: #8b5cf6; }
+
+        .user-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .user-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+        }
+        .user-card-name {
+            font-weight: 600;
+            color: #334155;
+            margin: 0 0 0.5rem 0;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .user-card-creds {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .user-card-creds span {
+            display: flex;
+            justify-content: space-between;
+            background: #fff;
+            padding: 0.3rem 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .user-card-creds code {
+            color: #4361ee;
+            font-weight: 600;
+        }
+        .btn-view-users {
+            width: 100%;
+            background: #f8fafc;
+            color: #4361ee;
+            border: 2px dashed #cbd5e1;
+            padding: 0.8rem;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+        .btn-view-users:hover {
+            background: #f1f5f9;
+            border-color: #4361ee;
+        }
     </style>
 
     <div class="login-wrapper">
@@ -540,15 +707,9 @@
                             <button type="submit" class="btn-submit">เข้าสู่ระบบ</button>
                         </form>
 
-                        <div class="mock-creds">
-                            <p class="cred-title"><i data-lucide="key-round"></i> Mock Credentials</p>
-                            <div class="cred-grid">
-                                <p>Student:<br><code>s6700045</code> / <code>s6700045</code></p>
-                                <p>Teacher:<br><code>t_somchai</code> / <code>password</code></p>
-                                <p>Staff:<br><code>staff</code> / <code>staff</code></p>
-                                <p>Executive:<br><code>manager</code> / <code>manager</code></p>
-                            </div>
-                        </div>
+                        <button type="button" class="btn-view-users" onclick="openUsersModal()">
+                            <i data-lucide="users"></i> ดูรายชื่อผู้ใช้งานระบบ (User & Password)
+                        </button>
             </div>
         </div>
 
@@ -664,6 +825,51 @@
 
     </div>
 
+    <!-- Users Modal -->
+    <div class="users-modal" id="usersModal">
+        <div class="users-modal-content">
+            <button class="close-modal" onclick="closeUsersModal()">
+                <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+            </button>
+            
+            <div class="users-modal-header">
+                <h2 class="users-modal-title">รายชื่อผู้ใช้งานระบบ</h2>
+                <div class="users-search-box">
+                    <i data-lucide="search" style="color: #94a3b8; width: 18px; height: 18px;"></i>
+                    <input type="text" id="searchInput" placeholder="ค้นหาชื่อ, username..." onkeyup="filterUsers()">
+                </div>
+            </div>
+
+            <div class="users-columns">
+                <% const roles = [
+                    { id: 'student', title: 'นักเรียน (Student)', icon: 'graduation-cap', cls: 'users-col-student' },
+                    { id: 'teacher', title: 'ครู (Teacher)', icon: 'book-open', cls: 'users-col-teacher' },
+                    { id: 'staff', title: 'เจ้าหน้าที่ (Staff)', icon: 'folder-open', cls: 'users-col-staff' },
+                    { id: 'executive', title: 'ผู้บริหาร (Executive)', icon: 'briefcase', cls: 'users-col-executive' }
+                ]; %>
+                
+                <% roles.forEach(role => { %>
+                    <div class="users-col <%= role.cls %>">
+                        <h4><i data-lucide="<%= role.icon %>"></i> <%= role.title %></h4>
+                        <div class="users-list">
+                            <% if (typeof demoUsers !== 'undefined') { %>
+                                <% demoUsers.filter(u => u.role === role.id).forEach(user => { %>
+                                    <div class="user-card" data-search="<%= user.username.toLowerCase() %> <%= user.full_name.toLowerCase() %>" onclick="fillLogin('<%= user.username %>', '<%= user.password %>')">
+                                        <p class="user-card-name"><%= user.full_name %></p>
+                                        <div class="user-card-creds">
+                                            <span>U: <code><%= user.username %></code></span>
+                                            <span>P: <code><%= user.password %></code></span>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Init Lucide icons
         lucide.createIcons();
@@ -675,6 +881,42 @@
             document.querySelector(`.role-panel[data-role="${role}"]`).classList.add('active');
             // re-render any new icons that appear (panels use display:none initially)
             lucide.createIcons();
+        }
+
+        function openUsersModal() {
+            document.getElementById('usersModal').classList.add('active');
+        }
+
+        function closeUsersModal() {
+            document.getElementById('usersModal').classList.remove('active');
+        }
+
+        function filterUsers() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.user-card');
+            
+            cards.forEach(card => {
+                const searchData = card.getAttribute('data-search');
+                if (searchData.includes(input)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function fillLogin(username, password) {
+            document.querySelector('input[name="username"]').value = username;
+            document.querySelector('input[name="password"]').value = password;
+            closeUsersModal();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('usersModal');
+            if (event.target == modal) {
+                closeUsersModal();
+            }
         }
     </script>
 

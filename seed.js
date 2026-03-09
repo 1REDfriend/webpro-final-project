@@ -50,7 +50,8 @@ async function seed() {
 
     // 2. Create Staff & Executive
     await run("INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, ?, ?, ?, ?)", ['staff', 'staff', 'staff', 'นางสาวใจดี ทะเบียนงาน', 'default-profile-women.png', 'female']);
-    await run("INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, ?, ?, ?, ?)", ['manager', 'manager', 'executive', 'นายสมเกียรติ ยุติธรรม (ผู้อำนวยการ)', 'default-profile-men.png', 'male']);
+    const adminRes = await run("INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, ?, ?, ?, ?)", ['manager', 'manager', 'executive', 'นายสมเกียรติ ยุติธรรม (ผู้อำนวยการ)', 'default-profile-men.png', 'male']);
+    const adminId = adminRes.lastID;
     console.log('สร้างข้อมูลเจ้าหน้าที่และผู้บริหารสำเร็จ');
 
     // 3. Create Teachers
@@ -349,6 +350,9 @@ async function seed() {
         'เกษรา', 'เจนจิรา', 'เบญจมาศ', 'สุรศักดิ์', 'ธีรยุทธ', 'กิตติพงศ์'
     ];
 
+    const studentUserIds = [];
+    const actualStudentIds = [];
+
     const lastNames = [
         'ใจดี', 'รักเรียน', 'มั่นคง', 'มีสุข', 'เดชะ', 'กล้าหาญ', 'ขยัน', 'อดทน',
         'เจริญ', 'สุวรรณ', 'ทองดี', 'วิเศษ', 'สิงห์โต', 'พิทักษ์', 'สมบูรณ์',
@@ -379,10 +383,12 @@ async function seed() {
 
         // User
         const userRes = await run("INSERT INTO users (username, password, role, full_name, profile_pic, gender) VALUES (?, ?, ?, ?, ?, ?)", [username, password, 'student', fullName, profilePic, gender]);
+        studentUserIds.push(userRes.lastID);
 
         // Student Record
         const stdRes = await run("INSERT INTO students (user_id, classroom_id, student_code) VALUES (?, ?, ?)", [userRes.lastID, classId, studentCode]);
         const studentId = stdRes.lastID;
+        actualStudentIds.push(studentId);
 
         const enrolledSubjects = classroomCurriculum[classId];
 
@@ -470,6 +476,178 @@ async function seed() {
         }
     }
     console.log('สร้างตารางเรียนสำเร็จ');
+
+    // 7. Create Behavior Logs
+    const behaviorReasons = [
+        'มาสาย',
+        'แต่งกายไม่เรียบร้อย',
+        'ไม่ส่งงาน',
+        'พูดจาไม่สุภาพ',
+        'ไม่เคารพครู',
+        'ทะเลาะกับเพื่อน',
+        'ใช้โทรศัพท์ในห้องเรียน',
+        'ขาดเรียนโดยไม่แจ้งเหตุผล'
+    ];
+
+    for (let i = 1; i <= 500; i++) {
+        const studentId = actualStudentIds[Math.floor(Math.random() * actualStudentIds.length)];
+        const scoreChange = (Math.random() < 0.5) ? -5 : -10; // ลด 5 หรือ 10 คะแนน
+        const reason = behaviorReasons[Math.floor(Math.random() * behaviorReasons.length)];
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30)); // ย้อนหลังไม่เกิน 30 วัน
+        const dateStr = date.toISOString().slice(0, 10);
+        const recordedBy = teacherIds[Math.floor(Math.random() * teacherIds.length)];
+
+        await run("INSERT INTO behavior_logs (student_id, score_change, reason, recorded_at, recorded_by) VALUES (?, ?, ?, ?, ?)",
+            [studentId, scoreChange, reason, dateStr, recordedBy]);
+
+        await run("UPDATE students SET behavior_score = MAX(0, behavior_score + ?) WHERE id = ?", [scoreChange, studentId]);
+    }
+    console.log('สร้างประวัติพฤติกรรมสำเร็จ');
+
+
+
+    // 8. Create Requests
+    const requestTopics = [
+        ['ขออนุญาตลาป่วย', 'เนื่องจากมีอาการไข้สูงและปวดศีรษะ ขออนุญาตลาหยุดเป็นเวลา 2 วันครับ/ค่ะ'],
+        ['ขออนุญาตลากิจ', 'มีความจำเป็นต้องเดินทางไปต่างจังหวัดกับครอบครัว ขออนุญาตลาหยุด 1 วันครับ/ค่ะ'],
+        ['ขอแก้ไขเกรดวิชาคณิตศาสตร์', 'ผมคิดว่าคะแนนเก็บในส่วนของรายงานยังไม่ได้รับการบันทึกครับ รบกวนคุณครูช่วยตรวจสอบด้วยครับ'],
+        ['ขอเอกสารรับรองสภาพการเป็นนักเรียน', 'ต้องการนำไปใช้ประกอบการขอวีซ่าเพื่อเดินทางไปต่างประเทศครับ/ค่ะ'],
+        ['แจ้งอุปกรณ์ในห้องเรียนชำรุด', 'พัดลมในห้องเรียน ม.3/2 แอร์ไม่เย็นและมีเสียงดังครับ รบกวนแจ้งช่างซ่อมบำรุงด้วยครับ'],
+        ['ขอย้ายที่นั่งเรียน', 'เนื่องจากที่นั่งปัจจุบันมองกระดานไม่ค่อยชัด ขออนุญาตย้ายไปนั่งด้านหน้าครับ'],
+        ['สอบถามเรื่องทุนการศึกษา', 'อยากทราบรายละเอียดเพิ่มเติมเกี่ยวกับทุนเรียนดีแต่ยากจนครับ ว่าต้องใช้เอกสารอะไรบ้าง'],
+        ['ขอใช้ห้องประชุมของโรงเรียน', 'ทางชมรมวิชาการขออนุญาตใช้ห้องประชุมเล็กเพื่อจัดกิจกรรมติวหนังสือหลังเลิกเรียนครับ']
+    ];
+
+    for (let i = 1; i <= 150; i++) {
+        const randomTopicDesc = requestTopics[Math.floor(Math.random() * requestTopics.length)];
+        const topic = randomTopicDesc[0];
+        const description = randomTopicDesc[1];
+
+        const senderId = studentUserIds[Math.floor(Math.random() * studentUserIds.length)];
+
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 60)); // ย้อนหลังไม่เกิน 60 วัน
+        const dateStr = date.toISOString().replace('T', ' ').slice(0, 19);
+
+        const statuses = ['Pending', 'Approved', 'Rejected'];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+        let reply = null;
+        if (status === 'Approved') {
+            const replies = ['รับทราบ อนุมัติตามคำขอครับ', 'ดำเนินการให้เรียบร้อยแล้ว', 'อนุญาตครับ ขอให้รักษาตัวให้หายไวๆ', 'ฝ่ายวิชาการรับเรื่องและอัปเดตข้อมูลแล้ว'];
+            reply = replies[Math.floor(Math.random() * replies.length)];
+        } else if (status === 'Rejected') {
+            const replies = ['เอกสารไม่ครบถ้วน กรุณายื่นใหม่', 'ไม่อนุมัติ เนื่องจากเหตุผลไม่เพียงพอ', 'กรุณาติดต่อครูที่ปรึกษาโดยตรงเพื่อชี้แจงเพิ่มเติม'];
+            reply = replies[Math.floor(Math.random() * replies.length)];
+        }
+
+        await run("INSERT INTO requests (user_id, topic, description, status, date, reply) VALUES (?, ?, ?, ?, ?, ?)",
+            [senderId, topic, description, status, dateStr, reply]);
+    }
+    console.log('สร้างข้อมูลคำร้องสำเร็จ');
+
+    // 9. Create Announcements
+    const announcements = [
+        [
+            'ประกาศหยุดเรียน',
+            'เนื่องด้วยสถานการณ์การแพร่ระบาดของโรคติดเชื้อไวรัสโคโรนา 2019 (โควิด-19) ทางโรงเรียนจึงขอประกาศหยุดเรียนเป็นเวลา 14 วัน ตั้งแต่วันที่ 15 มีนาคม 2567 ถึงวันที่ 28 มีนาคม 2567',
+            'https://scontent.fbkk5-4.fna.fbcdn.net/v/t39.30808-6/649154733_1374015118073810_1099678551312548389_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=7b2446&_nc_eui2=AeF1Jjdb79hO87Y8CxXGwyrLQvvtvXadaGNC--29dp1oY2RwzoXJjeH5EuMWox-s3uVT2Ow5hUgZ64mx-NXC-8Od&_nc_ohc=qQtvxSsx6FgQ7kNvwGIm0ig&_nc_oc=AdnxJxJOxUUxZaO6eQbbpQsRWdcaKMz3t1vLkQik4Gx-KbnSUJDqPOUlsja6cfTzlMH-a2xhRa_5IJPGeBTIViE6&_nc_zt=23&_nc_ht=scontent.fbkk5-4.fna&_nc_gid=IN370BiPMegHB0htT_d4yA&_nc_ss=8&oh=00_Afx5-HxcUAw30kvmN8ImAvJ4XLh3Qx6JaFOGEJAC4420Mw&oe=69B4CADF',
+            '2026-03-15',
+            1
+        ],
+        [
+            'ประกาศแจ้งเตือนภัยพายุฤดูร้อน',
+            'ด้วยกรมอุตุนิยมวิทยาได้มีประกาศแจ้งเตือนเรื่องพายุฤดูร้อน ขอให้นักเรียนและบุคลากรทุกท่านระมัดระวังอันตรายจากพายุฝนฟ้าคะนอง ลมกระโชกแรง และหลีกเลี่ยงการอยู่ในที่โล่งแจ้ง ใต้ต้นไม้ใหญ่ หรือป้ายโฆษณาที่ไม่แข็งแรง ทั้งนี้เพื่อความปลอดภัยเป็นสำคัญ',
+            'https://kkdata.khonkaenlink.info/wp-content/uploads/2022/03/KKL_NEWS_SstromQ2.jpg',
+            '2026-03-09',
+            1
+        ],
+        [
+            'ประกาศกำหนดการสอบกลางภาคเรียนที่ 1/2567',
+            'ขอแจ้งกำหนดการสอบกลางภาคเรียนสำหรับนักเรียนระดับชั้นมัธยมศึกษาปีที่ 1-6 ในระหว่างวันที่ 15 - 19 กรกฎาคม 2567 ขอให้นักเรียนทุกคนเตรียมตัวอ่านหนังสือและปฏิบัติตามกฎระเบียบการสอบอย่างเคร่งครัด หากพบการทุจริตจะมีบทลงโทษตามระเบียบของโรงเรียน',
+            'https://image.makewebcdn.com/makeweb/m_1920x0/jTu7Jpl5E/Content/%E0%B8%AB%E0%B8%B1%E0%B8%A7%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%81%E0%B8%B2%E0%B8%A8%E0%B8%AA%E0%B8%AD%E0%B8%9A%E0%B8%81%E0%B8%A5%E0%B8%B2%E0%B8%87%E0%B8%A0%E0%B8%B2%E0%B8%84.png',
+            '2026-06-25',
+            1
+        ],
+        [
+            'ประกาศรับสมัครนักเรียนใหม่ ประจำปีการศึกษา 2568',
+            'โรงเรียนเปิดรับสมัครนักเรียนชั้นมัธยมศึกษาปีที่ 1 และชั้นมัธยมศึกษาปีที่ 4 ใหม่ ประจำปีการศึกษา 2568 โดยสามารถเข้าดูระเบียบการรับสมัครและกรอกใบสมัครผ่านระบบออนไลน์บนเว็บไซต์ของโรงเรียน หรือติดต่อด้วยตนเองที่ห้องวิชาการ ตั้งแต่วันที่ 1 - 20 กุมภาพันธ์ 2568',
+            'https://www.kusmp.ac.th/images/68%E0%B8%A3%E0%B8%B1%E0%B8%9A%E0%B8%AA%E0%B8%A1%E0%B8%B1%E0%B8%84%E0%B8%A3%E0%B8%99%E0%B8%B1%E0%B8%81%E0%B9%80%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99%E0%B9%83%E0%B8%AB%E0%B8%A1%E0%B9%882568.jpg',
+            '2026-01-15',
+            1
+        ],
+        [
+            'เชิญร่วมงานกีฬาสี "สานสัมพันธ์เกมส์ ครั้งที่ 25"',
+            'โรงเรียนขอเชิญชวนคณะครู นักเรียน และผู้ปกครอง ร่วมเข้าชมและเป็นกำลังใจให้กับการแข่งขันกีฬาสีภายใน ประจำปี 2567 ในวันที่ 10 สิงหาคม 2567 ณ สนามกีฬาใหญ่ของโรงเรียน ภายในงานมีขบวนพาเหรด การแข่งขันเชียร์หลีดเดอร์ และกิจกรรมอื่นๆ ที่น่าสนใจมากมาย',
+            'https://www.banprucity.go.th/wp-content/uploads/2024/10/462312253_959656652861840_8407439361846572379_n-scaled.jpg',
+            '2026-07-20',
+            1
+        ],
+        [
+            'ประกาศรับสมัครทุนการศึกษาเรียนดีแต่ยากจน ปี 2567',
+            'ฝ่ายกิจการนักเรียนเปิดรับสมัครเพื่อพิจารณามอบทุนการศึกษาให้แก่นักเรียนที่มีผลการเรียนดีแต่ขาดแคลนทุนทรัพย์ นักเรียนที่ประสงค์จะขอรับทุน สามารถมารับแบบฟอร์มและยื่นเอกสารพร้อมหลักฐานได้ที่ห้องแนะแนว จนถึงวันที่ 30 มิถุนายน 2567',
+            'https://radiochiangmai.prd.go.th/th/file/get/file/20241226543341adb2f78188ef30bcfd6acac817144543.jpg',
+            '2026-05-20',
+            1
+        ],
+        [
+            'ประกาศการชำระบำรุงการศึกษา ภาคเรียนที่ 1/2567',
+            'เพื่อความสะดวกและรวดเร็ว ขอความร่วมมือผู้ปกครองทุกท่านชำระค่าบำรุงการศึกษาประจำภาคเรียนที่ 1/2567 ผ่านระบบโอนเงินเข้าบัญชีธนาคาร หรือสแกน QR Code ของทางโรงเรียน ภายในวันที่ 31 พฤษภาคม 2567 กรณีที่มีปัญหาหรือข้อสงสัยสามารถติดต่อฝ่ายการเงิน',
+            'https://www.triamudomsouth.ac.th/images/finance_1-2567.jpg',
+            '2026-05-01',
+            1
+        ],
+        [
+            'ประกาศเชิญวระชุมผู้ปกครองระดับชั้นมัธยมศึกษา',
+            'โรงเรียนกำหนดจัดการประชุมผู้ปกครองภาคเรียนที่ 1 ปีการศึกษา 2567 เพื่อชี้แจงแนวนโยบายของโรงเรียน แจ้งผลการเรียนของภาคเรียนก่อนหน้า และแลกเปลี่ยนความคิดเห็นกับครูที่ปรึกษา ในวันอาทิตย์ที่ 9 มิถุนายน 2567 เวลา 08.30-12.00 น.',
+            'https://fth1.com/uppic/11100254/news/11100254_0_20231130-082432.jpeg',
+            '2026-05-25',
+            1
+        ],
+        [
+            'ประกาศวันหยุดราชการเนื่องในเทศกาลสงกรานต์',
+            'เนื่องในเทศกาลวันสงกรานต์ ประจำปี 2567 โรงเรียนจะปิดทำการตั้งแต่วันที่ 12 เมษายน ถึงวันที่ 16 เมษายน 2567 และจะเปิดทำการตามปกติในวันพุธที่ 17 เมษายน 2567 ขอให้ทุกท่านมีความสุขกับการพักผ่อนและเดินทางโดยสวัสดิภาพในช่วงวันหยุดยาว',
+            'https://kcbkk.com/wp-content/uploads/2024/04/%E0%B8%A7%E0%B8%B1%E0%B8%99%E0%B8%AA%E0%B8%87%E0%B8%81%E0%B8%A3%E0%B8%B2%E0%B8%99%E0%B8%95%E0%B9%8C.png',
+            '2026-04-05',
+            1
+        ],
+        [
+            'แนวทางปฏิบัติช่วงภาวะฝุ่นละออง PM 2.5 ทางโรงเรียน',
+            'สืบเนื่องจากสถานการณ์ค่าฝุ่นละอองขนาดเล็ก (PM 2.5) ในพื้นที่โรงเรียนเริ่มมีผลกระทบต่อสุขภาพ ขอให้นักเรียนสวมหน้ากากอนามัยสำหรับป้องกันฝุ่น PM 2.5 ทั้งนี้ทางโรงเรียนของดกิจกรรมกลางแจ้งและวิชาพละศึกษาชั่วคราวจนกว่าค่าฝุ่นจะกลับเข้าสู่สภาวะปกติ',
+            'https://www.roong-aroon.ac.th/wp-content/uploads/2019/01/PM2.5policy.jpg',
+            '2026-02-15',
+            1
+        ],
+        [
+            'รับสมัครคณะกรรมการสภานักเรียน ปีการศึกษา 2567',
+            'ฝ่ายกิจการนักเรียนเปิดรับสมัครพรรคหรือกลุ่มที่สนใจจะลงรับเลือกตั้งเป็นประธานและคณะกรรมการสภานักเรียนประจำปีการศึกษาหน้า สำหรับนักเรียนที่สนใจสามารถอ่านเงื่อนไขการรับสมัครเบื้องต้น และยื่นใบสมัครได้ตั้งแต่วันนี้ถึง 10 พฤษภาคม 2567',
+            'https://fth0.com/uppic/86100385/news/86100385_0_20231206-100555.jpeg',
+            '2026-05-01',
+            1
+        ],
+        [
+            'ประกาศโครงการฉีดวัคซีนไข้หวัดใหญ่ ประจำปี',
+            'โรงเรียนร่วมกับโรงพยาบาลส่วนท้องถิ่น ได้จัดโครงการบริการฉีดวัคซีนป้องกันโรคไข้หวัดใหญ่ ชนิด 4 สายพันธุ์ ประจำปี 2567 สำหรับบุคลากรและนักเรียนที่สนใจ โดยจะมีการลงชื่อล่วงหน้าก่อนวันที่ 15 กันยายนนี้ (มีค่าใช้จ่ายเพิ่มเติม)',
+            'https://www.rama.mahidol.ac.th/sdmc/sites/default/files/public/HD2vaccine_V4-02%20-%20Pitcha%20phokung.jpg',
+            '2026-09-01',
+            1
+        ]
+    ];
+
+    for (let i = 1; i <= 100; i++) {
+        const random = Math.floor(Math.random() * announcements.length);
+        const title = announcements[random][0];
+        const content = announcements[random][1];
+        const image = announcements[random][2];
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30)); // ย้อนหลังไม่เกิน 30 วัน
+        const dateStr = date.toISOString().slice(0, 10);
+
+        await run("INSERT INTO announcements (title, description, description_markdown, image_url, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+            [title, content, content, image, dateStr, adminId]);
+    }
+    console.log('สร้างประกาศสำเร็จ');
 
     db.close();
     console.log('เสร็จสิ้นการสร้างข้อมูลเริ่มต้น');
