@@ -10,6 +10,10 @@
     --radius: 12px;
 }
 
+* {
+    font-family: 'Sarabun', sans-serif;
+}
+
 body {
     background-color: var(--bg-dark);
     color: var(--text-main);

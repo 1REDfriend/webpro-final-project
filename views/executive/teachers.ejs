@@ -38,9 +38,9 @@
                         style="border:none;background:transparent;outline:none;font-size:0.9rem;color:var(--text-main);width:100%;"
                         oninput="filterTeacherRows()">
                 </div>
-                <div style="overflow-x: auto; margin-top: 1rem;">
+                <div style="overflow-x: auto; margin-top: 1rem; max-height: 400px; overflow-y: auto;">
                     <table>
-                        <thead>
+                        <thead style="position: sticky; top: 0; z-index: 1; background-color: white;">
                             <tr>
                                 <th>รูปภาพ</th>
                                 <th>ชื่อ-นามสกุล</th>

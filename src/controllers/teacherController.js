@@ -200,7 +200,7 @@ exports.getClasses = async (req, res) => {
 
 exports.updateBehavior = (req, res) => {
     const { student_id, score_change, reason } = req.body;
-    db.run(`UPDATE students SET behavior_score = MIN(100, MAX(0, behavior_score + ?)) WHERE id = ?`,
+    db.run(`UPDATE students SET behavior_score = (behavior_score + ?) WHERE id = ?`,
         [score_change, student_id], (err) => {
             if (err) console.error(err);
             else {
